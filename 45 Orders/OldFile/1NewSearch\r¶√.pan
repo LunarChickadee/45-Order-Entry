@@ -1,4 +1,4 @@
-local vChoice,vFirstInitial,vLastName,vExtracted,vExtracted2,vFirstIntLastName,vCustNum
+global vChoice,vFirstInitial,vLastName,vExtracted,vExtracted2,vFirstIntLastName,vCustNum
 
 waswindow=info("windowname")
 
@@ -43,19 +43,14 @@ Add New Customer Instead"
 superchoicedialog ChoiceList, Choice, {caption="How Would You Like to Search?" captionstyle=bold}
 message Choice
 
-supergettext vChoice,“caption="Please Choose How You'd like to Search:
-1=Email 2=Phone Number 3=Mailing Address 4=Add New Customer 
-Use the Command + Tilde '~' key to run this again!" captionheight=3”
-
-
-//Give user the option to search 
-GetText "Search By: 1-Email, 2-Ph#, 3-MAd, 4-NewCustomer",vChoice
+vChoice=arraysearch(ChoiceList, Choice, 1, ¶)
 
 if vChoice="1"
     window newyear+" mailing list"
     select email=vEmail
     if info("selected")=info("records")
-        message "No email match found."+¶+"Press CMD-R to search by something else."
+        message "No email match found."
+        call "NewSearch/`"
     else 
         bigmessage "Select customer in mailing list and press cmd+option+r to enter"+¶+"If the customer doesnt appear here, press CMD-R to search by something else." 
     endif
@@ -66,7 +61,8 @@ if vChoice="2"
     window newyear+" mailing list"
     select phone=vPhoneNum
     if info("selected")=info("records")
-        message "No phone match found."+¶+"Press CMD-r to search by something else."
+        message "No phone match found."
+        call "NewSearch/`"
     else 
         message "Select customer in mailing list and press cmd+option+r."+¶+"If the customer doesnt appear here, press CMD-R to search by something else." 
     endif
@@ -76,13 +72,29 @@ if vChoice="3"
     window newyear+" mailing list"
     select MAd=place and Zip=vzip
         if info("selected")=info("records")
-        message "No address match found."+¶+"Press CMD-r to search by something else."
+        message "No address match found."
+        call "NewSearch/`"
     else 
-        message "Select customer in mailing list and press cmd+option+r."+¶+"If the customer doesnt appear here, press CMD-R to search by something else." 
+        select MAd contains place And Zip=vzip
+        selectedAddressArray=""
+        arrayselectedbuild selectedAddressArray, ¶,"",?(«C#» >0 ,str(«C#»), "NoNumberYet")+¬+«Con»+¬+«MAd»+¬+«City»+¬+«St»
+        superchoicedialog selectedAddressArray, chosenAddress, 
+            {title="Choose the Correct Customer/Address" caption="Click -Other Search- to Search by something else" buttons="ok;other search;cancel"}
+
+        if info("dialogtrigger") contains "ok"
+            call "enter/e"
+        endif
+        if info("dialogtrigger") contains "search"
+            call NewSearch/`
+        endif
     endif
 endif
 
 if vChoice="4"
+    findselectdialog
+endif
+
+if vChoice="5"
     window newyear+" mailing list"
         insertrecord
         Con=grabdata(newyear+"orders",Con) 

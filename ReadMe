@@ -40,6 +40,12 @@ added a WinCheck variable to see what windows are open to help with referencing 
             endif
         endcase
 
+
+//!!!!!! This is missing an argument. Why is it here?
+drawobjects
+
+
+
 In .customerfill
 
 Previous work that isn't finished
@@ -47,3 +53,32 @@ Previous work that isn't finished
 //SpareText3=datepattern(today(),"MM/DD/YY")+" - Most Recent Order"+" "+"S"+str(S)+" "+"T"+str(T)+" "+"B"+str(Bf)
 //currently is holding "Previous Addresses" from an incomplete macro
 //perhaps make a dicitonary of both of these data points? 
+
+
+
+Updated the UPdatemaail and newsearch macros to make them actually loop correctly
+
+to do on 8/2/22:
+
+makesure the addmail part works correctly 
+
+    if info("dialogtrigger") contains "ok"
+                find exportline() contains chosenAddress
+                if info("found")=-1
+                    message "Found!"
+                    call "enter/e"
+                else
+                    message "error, repeating search..."
+                    farcall "45orders","NewSearch/`"
+                endif
+            endif
+            if info("dialogtrigger") contains "search"
+                farcall "45orders","NewSearch/`"
+            endif
+            if info("dialogtrigger") contains "cancel"
+            stop
+            endif
+             goto addmail
+        endif
+    endif
+endif
