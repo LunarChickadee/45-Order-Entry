@@ -1,5 +1,5 @@
 fileglobal vDate
-local Flag
+global Flag,vRedFlag
 
 Flag=""
 vDate=datepattern(today(),"YY")
@@ -13,15 +13,6 @@ rayj=«Mem?»
 
 ///*********!! not sure if there's any need for this anymore
 «M?»=?(«M?» contains "E" or «M?» contains "U" or «M?» contains "R", "", «M?»)
-
-
-/*
-****
-Note:
-This originally looks like it was meant to track that they had ordered with a branch
-however, current users think this number denotes "getting a catalog" Consider changeing it
--Lunar 8-1-22
-*/
 
 case waswindow contains "bulbs"
     Bf=?(Bf=0,1,Bf)
@@ -69,7 +60,10 @@ If Flag≠""
     endcase
     
     window newyear+" mailing list"
-    RedFlag=Flag+¶+RedFlag
+    vRedFlag=Flag+¶+RedFlag
+    vRedFlag=arraydeduplicate(vRedFlag,¶)
+    arraystrip vRedFlag,¶
+    RedFlag=vRedFlag
 
     window waswindow
 EndIf
@@ -98,15 +92,15 @@ Email=grabdata(newyear+" mailing list", email)
 ;comgrower=grabdata(newyear+" mailing list", CG)
 
 case info("formname")="seedsinput"
-    LastYearTotal=grabdata("customer_history", S43)
+    LastYearTotal=grabdata("customer_history", S44)
 case info("formname")="bulbsinput"
-    LastYearTotal=grabdata("customer_history", Bf43)
+    LastYearTotal=grabdata("customer_history", Bf44)
 ;case info("formname")="ogsinput"
-    ;LastYearTotal=grabdata("customer_history", OGS43)
+    ;LastYearTotal=grabdata("customer_history", OGS44)
 case info("formname")="treesinput"
-    LastYearTotal=grabdata("customer_history", T43)
+    LastYearTotal=grabdata("customer_history", T44)
 case info("formname")="mtinput"
-    LastYearTotal=grabdata("customer_history", M43)
+    LastYearTotal=grabdata("customer_history", M44)
 endcase
 
 «C#Text»=str(«C#»)
@@ -166,16 +160,3 @@ else
         endIf
     endif
 Endif    
-___ ENDPROCEDURE .customerfill _________________________________________________
-
-___ PROCEDURE .currentrecord ___________________________________________________
-If OrderNo≠int(OrderNo)
-    UpRecord
-    rayb=?(Group≠"", Group, Con)
-    Downrecord
-    Group=rayb
-    field Con
-    stop
-else
-    stop
-endif

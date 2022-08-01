@@ -405,14 +405,20 @@ endif
 ___ ENDPROCEDURE .custnumber ___________________________________________________
 
 ___ PROCEDURE .customerfill ____________________________________________________
-local Flag
+fileglobal vDate
+global Flag,vRedFlag
+
 Flag=""
+vDate=datepattern(today(),"YY")
 waswindow=info("windowname")
 Num=«C#»
 window newyear+" mailing list"
+
 find «C#»=Num
 rayj=«Mem?»
 
+
+///*********!! not sure if there's any need for this anymore
 «M?»=?(«M?» contains "E" or «M?» contains "U" or «M?» contains "R", "", «M?»)
 
 case waswindow contains "bulbs"
@@ -427,6 +433,13 @@ case waswindow contains "trees"
     T=?(T=0,1,T)
 endcase
 
+
+//******!!needs testing
+//SpareText3=datepattern(today(),"MM/DD/YY")+" - Most Recent Order"+" "+"S"+str(S)+" "+"T"+str(T)+" "+"B"+str(Bf)
+//currently is holding "Previous Addresses" from an incomplete macro
+//perhaps make a dicitonary of both of these data points? 
+
+
 if info("found")=0
     call "getzip/Ω"
     stop
@@ -438,22 +451,27 @@ If Outstanding>0
 endif
 
 window waswindow
-window "customer_history:secret"
+window "customer_history"  /*#was customer_history:secret*/
 find «C#»=Num
 window waswindow
 Flag=grabdata(newyear+" mailing list", RedFlag)
+
 
 If Flag≠""
     case Flag="changed"
         Flag=""
     case Flag="new"
         Flag=""
-    case Flag contains "bad" or Flag contains "returned" or Flag contains "moved" or Flag contains "no forward"
+    case Flag contains "bad" or Flag contains "returned" or Flag contains "moved" or Flag contains "no forward" or Flag contains "temp" or Flag contains "mail" or Flag contains "attempt" or Flag contains "no"
         Message "Check this order carefully."
     endcase
     
     window newyear+" mailing list"
-    RedFlag=Flag
+    vRedFlag=Flag+¶+RedFlag
+    vRedFlag=arraydeduplicate(vRedFlag,¶)
+    arraystrip vRedFlag,¶
+    RedFlag=vRedFlag
+
     window waswindow
 EndIf
 
@@ -481,15 +499,15 @@ Email=grabdata(newyear+" mailing list", email)
 ;comgrower=grabdata(newyear+" mailing list", CG)
 
 case info("formname")="seedsinput"
-    LastYearTotal=grabdata("customer_history", S43)
+    LastYearTotal=grabdata("customer_history", S44)
 case info("formname")="bulbsinput"
-    LastYearTotal=grabdata("customer_history", Bf43)
+    LastYearTotal=grabdata("customer_history", Bf44)
 ;case info("formname")="ogsinput"
-    ;LastYearTotal=grabdata("customer_history", OGS43)
+    ;LastYearTotal=grabdata("customer_history", OGS44)
 case info("formname")="treesinput"
-    LastYearTotal=grabdata("customer_history", T43)
+    LastYearTotal=grabdata("customer_history", T44)
 case info("formname")="mtinput"
-    LastYearTotal=grabdata("customer_history", M43)
+    LastYearTotal=grabdata("customer_history", M44)
 endcase
 
 «C#Text»=str(«C#»)
@@ -549,6 +567,7 @@ else
         endIf
     endif
 Endif    
+
 ___ ENDPROCEDURE .customerfill _________________________________________________
 
 ___ PROCEDURE .currentrecord ___________________________________________________
@@ -2309,25 +2328,15 @@ intOrder1=int(OrderNo)
 WinCheck=info("windows")
 
 case intOrder1 ≥ 700000
-    if WinCheck notcontains "seedsinput"
     openform "seedsinput"
-    endif
 case intOrder1 ≥ 600000 and intOrder1 < 700000
-    if WinCheck notcontains "mtinput"
     openform "mtinput"
-    endif
 case intOrder1 ≥ 500000 and intOrder1 < 600000
-    if WinCheck notcontains "bulbsinput"
     openform "bulbsinput"
-    endif
 case intOrder1 ≥ 400000 and intOrder1 < 500000
-    if WinCheck notcontains "treesinput"
     openform "treesinput"
-    endif
 case intOrder1 ≥ 300000 and intOrder1 <400000
-    if WinCheck notcontains "ogsinput"
     openform "ogsinput"
-    endif
 endcase
 
 rayb=?(Group≠"", Group, Con)
@@ -2416,6 +2425,8 @@ if OrderNo=int(OrderNo)
             call "updatemail/7"
     endif
 endif
+
+//!!!!!! This is missing an argument. Why is it here?
 drawobjects
 ___ ENDPROCEDURE next/1 ________________________________________________________
 
@@ -2502,6 +2513,9 @@ Zip=Z
 ___ ENDPROCEDURE same mail/6 ___________________________________________________
 
 ___ PROCEDURE updatemail/7 _____________________________________________________
+global selectedAddressArray, chosenAddress, chosenAddress1, FindWindow, WinNumber
+
+
 waswindow=info("windowname")
 
 ;call ".dropship"
@@ -2516,6 +2530,11 @@ rayj=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1]
 place=MAd["0-9",-1][1,2]
 field «1stPayment»
 ;editcell
+
+WinNumber=arraysearch(info("windows"), "mailing list", 1,¶)
+if WinNumber=0
+    openfile newyear+" mailing list"
+endif
 window newyear+" mailing list"
 if vd>0
     find «C#»=vd
@@ -2526,13 +2545,20 @@ if vd>0
             stop
         endif
     endif
+
     if info("found")=0
         goto newzip
     endif
     window newyear+" mailing list"
 endif
+
+//*********************************************************//
+//Searches by Zip
 newzip:
+
 find Zip=vzip
+
+//Zip that's not in Mailaing List
 if info("found")=0
     find Con contains extract(rayj," ",1)and Con contains extract(rayj," ",2)
     if info("Found")=-1
@@ -2573,6 +2599,9 @@ if info("found")=0
         window waswindow
     endif
 endif
+
+
+//Zip is in Mailing List
 if info("found")=-1
     if place ≠ ""
         find MAd contains place And Zip=vzip
@@ -2613,26 +2642,34 @@ if info("found")=-1
         endif
         if info("found")=-1
            newentry:
-           ; beep
-           ; WindowBox "459 437 858 1094"
-            loop
-                mailaddress=Con+¶+MAd+¶+City+" "+St+" "+pattern(Zip,"#####")
-        superalert "Do you want to enter this one?"+¶+¶+mailaddress,{height=300 width=250 font="Helvetica"
-                size=18 color="red" bgcolor="lightgoldenrodyellow" buttons="Yes:60;No:60" }
-                if info("dialogtrigger") contains "Yes"
-                    «M?»=?(«M?» contains "E" or «M?» contains "U" or «M?» contains "R", "", «M?»)
+            select MAd contains place And Zip=vzip
+            selectedAddressArray=""
+            arrayselectedbuild selectedAddressArray, ¶,"",str(«C#»)+¬+«Con»+¬+«Group»+¬+«MAd»+¬+«City»+¬+«St»
+            selectall
+            find Zip=vzip
+            superchoicedialog selectedAddressArray, chosenAddress, 
+                {title="Choose the Correct Customer/Address" caption="Click -Other Search- to Search by something else" buttons="ok;other search;cancel"}
+            if info("dialogtrigger") contains "ok"
+                find exportline() contains chosenAddress
+                if info("found")=-1
+                    message "Found!"
                     call "enter/e"
                 else
-                    Next
-                    stoploopif info("found")=0
+                    message "error, repeating search..."
+                    farcall "45orders","NewSearch/`"
                 endif
-             while forever
+            endif
+            if info("dialogtrigger") contains "search"
+                farcall "45orders","NewSearch/`"
+            endif
+            if info("dialogtrigger") contains "cancel"
+            stop
+            endif
              goto addmail
         endif
     endif
 endif
 
- 
 ___ ENDPROCEDURE updatemail/7 __________________________________________________
 
 ___ PROCEDURE ordersonly/8 _____________________________________________________
