@@ -2302,6 +2302,33 @@ sortup
 ___ ENDPROCEDURE sortup/0 ______________________________________________________
 
 ___ PROCEDURE next/1 ___________________________________________________________
+global WinCheck, intOrder1
+
+intOrder1=int(OrderNo)
+
+WinCheck=info("windows")
+
+case intOrder1 ≥ 700000
+    if WinCheck notcontains "seedsinput"
+    openform "seedsinput"
+    endif
+case intOrder1 ≥ 600000 and intOrder1 < 700000
+    if WinCheck notcontains "mtinput"
+    openform "mtinput"
+    endif
+case intOrder1 ≥ 500000 and intOrder1 < 600000
+    if WinCheck notcontains "bulbsinput"
+    openform "bulbsinput"
+    endif
+case intOrder1 ≥ 400000 and intOrder1 < 500000
+    if WinCheck notcontains "treesinput"
+    openform "treesinput"
+    endif
+case intOrder1 ≥ 300000 and intOrder1 <400000
+    if WinCheck notcontains "ogsinput"
+    openform "ogsinput"
+    endif
+endcase
 
 rayb=?(Group≠"", Group, Con)
 ;rayc=«C#Text»
