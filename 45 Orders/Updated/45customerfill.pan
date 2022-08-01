@@ -14,6 +14,15 @@ rayj=«Mem?»
 ///*********!! not sure if there's any need for this anymore
 «M?»=?(«M?» contains "E" or «M?» contains "U" or «M?» contains "R", "", «M?»)
 
+
+/*
+****
+Note:
+This originally looks like it was meant to track that they had ordered with a branch
+however, current users think this number denotes "getting a catalog" Consider changeing it
+-Lunar 8-1-22
+*/
+
 case waswindow contains "bulbs"
     Bf=?(Bf=0,1,Bf)
 case waswindow contains "seeds"
