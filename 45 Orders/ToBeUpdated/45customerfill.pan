@@ -14,16 +14,19 @@ rayj=«Mem?»
 ///*********!! not sure if there's any need for this anymore
 «M?»=?(«M?» contains "E" or «M?» contains "U" or «M?» contains "R", "", «M?»)
 
+//this was someone's way of tracking which catalogs to send them. based on which 
+//window the user was on for order entry
+//however it keeps causing confusion when people try to "zero" it out
 case waswindow contains "bulbs"
-    Bf=?(Bf=0,1,Bf)
+    Bf=?(Bf=0 and RedFlag="",1,Bf)
 case waswindow contains "seeds"
-    S=?(S=0,1,S)
+    S=?(S=0 and RedFlag="",1,S)
 case waswindow contains "ogs"
-    S=?(S=0,1,S)
+    S=?(S=0 and RedFlag="",1,S)
 case waswindow contains "mt"
-    S=?(S=0,1,S)
+    S=?(S=0 and RedFlag="",1,S)
 case waswindow contains "trees"
-    T=?(T=0,1,T)
+    T=?(T=0 and RedFlag="",1,T)
 endcase
 
 

@@ -60,6 +60,10 @@ Updated the UPdatemaail and newsearch macros to make them actually loop correctl
 
 to do on 8/2/22:
 
+Find out what is saving on a server???
+-hit saveall to make it happen
+
+
 makesure the addmail part works correctly 
 
     if info("dialogtrigger") contains "ok"
@@ -82,3 +86,6 @@ makesure the addmail part works correctly
         endif
     endif
 endif
+
+
+use magicwindow to set the dimentions for the order entry windows see "Magicwindow" in the reference
