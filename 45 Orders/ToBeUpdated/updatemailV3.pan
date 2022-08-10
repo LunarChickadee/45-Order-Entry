@@ -26,6 +26,7 @@ WinNumber=arraysearch(info("windows"), "mailing list", 1,¶)
     endif
 
 window newyear+" mailing list"
+
 if vd>0
     find «C#»=vd
     if info("found")=-1
@@ -60,6 +61,7 @@ if info("found")=0
             addmail:
 
             insertrecord
+            //why isn't this doing an exportline?
             Con=grabdata(newyear+"orders",Con) 
             Group=grabdata(newyear+"orders",Group) 
             MAd=grabdata(newyear+"orders",MAd) 

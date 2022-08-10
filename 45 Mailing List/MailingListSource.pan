@@ -653,6 +653,8 @@ field «C#»
 ___ ENDPROCEDURE entering/√ ____________________________________________________
 
 ___ PROCEDURE enter/e __________________________________________________________
+global mostRecentOrder
+
 Num=«C#»
 If Num=0
 ;Message "You must create a Customer#"
@@ -672,6 +674,7 @@ If Num=0
                     call "moosed/µ"
                 endif
 endif
+
 case waswindow contains "bulbs"
 Bf=?(Bf=0,1,Bf)
 case waswindow contains "tree"
