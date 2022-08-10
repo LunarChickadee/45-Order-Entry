@@ -161,7 +161,7 @@ removeallsummaries
 ___ ENDPROCEDURE bulbs_exporter/b ______________________________________________
 
 ___ PROCEDURE .Initialize ______________________________________________________
-global n, raya, rayb, rayc, rayd, raye, rayf, rayg, rayh, rayi, rayj, waswindow,
+global n, raya, rayb, groupArray, rayc, rayd, raye, rayf, rayg, rayh, rayi, rayj, waswindow,
 Com, Cost, Disc, VDisc, ODisc, stax,item, size,ono, vfax, state, sub, vzip,
 vd, adj, tax, f, gr, di, da,  three, secno, alt, oono, nu, oldtot, newtot, aray, taxable,
 mailaddress, mailcopies, mailheader, messageBody, newyear, newpfile, rollingdisc,ID, taxable
@@ -173,6 +173,7 @@ nu=0
 n=1
 raya=¶
 rayb=""
+groupArray=""
 rayc=""
 rayd=""
 raye=""
@@ -370,6 +371,8 @@ ___ PROCEDURE .coupon __________________________________________________________
 ___ ENDPROCEDURE .coupon _______________________________________________________
 
 ___ PROCEDURE .custnumber ______________________________________________________
+//this runs when C# is changed
+//users are currently using two enters to get this to run during order entry
 waswindow=info("windowname")
 Global Num
 Num=«C#»
@@ -406,7 +409,7 @@ ___ ENDPROCEDURE .custnumber ___________________________________________________
 
 ___ PROCEDURE .customerfill ____________________________________________________
 fileglobal vDate
-global Flag,vRedFlag
+global Flag,vRedFlag,vBf,vS,vT
 
 Flag=""
 vDate=datepattern(today(),"YY")
@@ -462,7 +465,14 @@ If Flag≠""
         Flag=""
     case Flag="new"
         Flag=""
-    case Flag contains "bad" or Flag contains "returned" or Flag contains "moved" or Flag contains "no forward" or Flag contains "temp" or Flag contains "mail" or Flag contains "attempt" or Flag contains "no"
+    case Flag contains "bad" 
+        or Flag contains "returned" 
+        or Flag contains "moved" 
+        or Flag contains "no forward" 
+        or Flag contains "temp" 
+        or Flag contains "mail" 
+        or Flag contains "attempt" 
+        or Flag contains "no"
         Message "Check this order carefully."
     endcase
     
@@ -573,9 +583,9 @@ ___ ENDPROCEDURE .customerfill _________________________________________________
 ___ PROCEDURE .currentrecord ___________________________________________________
 If OrderNo≠int(OrderNo)
     UpRecord
-    rayb=?(Group≠"", Group, Con)
+    groupArray=?(Group≠"", Group, Con)
     Downrecord
-    Group=rayb
+    Group=groupArray
     field Con
     stop
 else
@@ -1129,7 +1139,7 @@ if OrderNo≠int(OrderNo)
                         Pool=rayi
                     endif
                     if info("formname")≠"addresschecker"
-                        Group=rayb
+                        Group=groupArray
                     else Group=Group
                     endif
                     MemDisc=?(rayg="Y", .01, MemDisc)
@@ -1148,9 +1158,9 @@ if OrderNo≠int(OrderNo)
     endif
     if info("windowname")="addresschecker"
         UpRecord
-        rayb=?(Group≠"", Group, Con)
+        groupArray=?(Group≠"", Group, Con)
         Downrecord
-        Group=rayb
+        Group=groupArray
         stop
     endif
     if OrderNo=int(OrderNo)
@@ -2323,31 +2333,37 @@ sortup
 ___ ENDPROCEDURE sortup/0 ______________________________________________________
 
 ___ PROCEDURE next/1 ___________________________________________________________
-global WinCheck, intOrder1
+global WinCheck, intOrder1, fromBranch
 
 intOrder1=int(OrderNo)
-
+fromBranch=""
 WinCheck=info("windows")
 
 
 /*
 added this because I don't see a a reason to not ensure the user is
 on the right entry form
+also holds onto what branch this order is to check against for later
 -L 8/22
 */
 case intOrder1 ≥ 700000
     openform "seedsinput"
+    fromBranch="Seeds"
 case intOrder1 ≥ 600000 and intOrder1 < 700000
     openform "mtinput"
+    fromBranch="OGS"
 case intOrder1 ≥ 500000 and intOrder1 < 600000
     openform "bulbsinput"
+    fromBranch="OGS"
 case intOrder1 ≥ 400000 and intOrder1 < 500000
     openform "treesinput"
+    fromBranch="Trees"
 case intOrder1 ≥ 300000 and intOrder1 <400000
     openform "ogsinput"
+    fromBranch="OGS"
 endcase
 
-rayb=?(Group≠"", Group, Con)
+groupArray=?(Group≠"", Group, Con)
 ;rayc=«C#Text»
 if OrderNo=int(OrderNo)
     rayg=?(MemDisc=round(Subtotal*.01,.01),"Y","")
@@ -2372,7 +2388,7 @@ if info("formname")="addresschecker"
 endif
 field «C#»
 if OrderNo≠int(OrderNo)
-    Group=rayb
+    Group=groupArray
     ;«C#Text»=rayc
     MemDisc=?(rayg="Y",.01,MemDisc)
     if info("formname")="treesinput"
@@ -2777,7 +2793,9 @@ case clipboard()="bulbs"
 case clipboard()="mt"
     select OrderNo > 600000 and OrderNo < 700000
 endcase
+
 selectwithin Zip≠0
+
 local raya, rayb, vzip,vtot,ono,vcon
 rayb=""
 hide

@@ -141,7 +141,10 @@ if info("found")=-1
             selectall
             find Zip=vzip
             superchoicedialog selectedAddressArray, chosenAddress, 
-                {title="Choose the Correct Customer/Address" caption="Click -Other Search- to Search by something else" buttons="ok;other search;cancel"}
+                {title="Choose the Correct Customer/Address" 
+                caption="Click -Other Search- to Search by something else" 
+                buttons="ok;other search;cancel"}
+                
             if info("dialogtrigger") contains "ok"
                 find exportline() contains chosenAddress
                 if info("found")=-1
