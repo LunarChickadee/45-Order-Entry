@@ -11,6 +11,7 @@ SpareText2=str(«C#»)
 If inqcode=""
 Field inqcode
 EditCell
+
 field «C#»
 EndIf
 if S=0

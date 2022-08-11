@@ -2351,10 +2351,10 @@ case intOrder1 ≥ 700000
     fromBranch="Seeds"
 case intOrder1 ≥ 600000 and intOrder1 < 700000
     openform "mtinput"
-    fromBranch="OGS"
+    fromBranch="OGS;POE"
 case intOrder1 ≥ 500000 and intOrder1 < 600000
     openform "bulbsinput"
-    fromBranch="OGS"
+    fromBranch="OGS;Bulbs"
 case intOrder1 ≥ 400000 and intOrder1 < 500000
     openform "treesinput"
     fromBranch="Trees"

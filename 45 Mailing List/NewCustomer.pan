@@ -1,53 +1,43 @@
-
-
-//This Function should not run if they have a customer Number already
 if «C#»≠0
     stop 
 endif
 
+//gives them an First Year and Branch of Order code
 case fromBranch contains "Seeds"
-Code = "I45s"
+Code = "I"+thisYear+"s"
 case fromBranch contains "OGS"
-Code = "I45o"
+code = "I"+thisYear+"s"
 case fromBranch contains "Trees"
-Code = "I45t"
+Code = "I"+thisYear+"t"
 
-
-case intOrder1 ≥ 700000
-    openform "seedsinput"
-    fromBranch="Seeds"
-case intOrder1 ≥ 600000 and intOrder1 < 700000
-    openform "mtinput"
-    fromBranch="OGS"
-case intOrder1 ≥ 500000 and intOrder1 < 600000
-    openform "bulbsinput"
-    fromBranch="OGS"
-case intOrder1 ≥ 400000 and intOrder1 < 500000
-    openform "treesinput"
-    fromBranch="Trees"
-case intOrder1 ≥ 300000 and intOrder1 <400000
-    openform "ogsinput"
-    fromBranch="OGS"
-endcase
-
-
-
-
+//gets a new number
 openfile "Customer#"
-call "newnumber"
+call "filler/¬"
+
+//_______________________//
 window "45 mailing list"
 Field «C#»
-Paste
+    Paste
+
+//why?
 SpareText2=str(«C#»)
+
 If inqcode=""
-Field inqcode
-inqcode=?(inqcode contains "17", inqcode[3,-1], inqcode)
-EditCell
-field «C#»
+    Field inqcode
+    inqcode=?(inqcode contains "17", inqcode[3,-1], inqcode)
+    EditCell
+    field «C#»
 EndIf
-if S=0
-call "filler/¬"
+
+call NewCustomer
+
+If inqcode=""
+field inqcode
+editcell
 endif
+endif
+
+//_______________________________//
 window "customer_history:secret"
 opensheet
 insertbelow
@@ -61,5 +51,7 @@ Zip=grabdata("45 mailing list", Zip)
 Email=grabdata("45 mailing list", email)
 SpareText2=grabdata("45 mailing list", SpareText2)
 ;CloseWindow
+
+//______________________________//
 window "45 mailing list"
 Call "enter/e"
