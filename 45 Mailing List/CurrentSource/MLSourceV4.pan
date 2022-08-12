@@ -154,36 +154,70 @@ ___ ENDPROCEDURE .Initialize ___________________________________________________
 ___ PROCEDURE .addmember _______________________________________________________
 
 ///*********This is the FileChecker macro in GetMacros
-local fileNeeded
+local fileNeeded,folderArray,smallFolderArray,sizeCheck, procList, mostRecentProc
 
-  //replace this with whatever file you're error checking
-    fileNeeded="members"
-    //  ----------------------  //
+//replace this with whatever file you're error checking
+//----------------------//
+fileNeeded="members"    //
+//----------------------//
+
 
 case info("files") notcontains fileNeeded and listfiles(folder(""),"????KASX") contains fileNeeded
 openfile fileNeeded
 
 case listfiles(folder(""),"????KASX") notcontains fileNeeded
-    
+    mostRecentProc=tabarray(nthline(info("procedurestack"),1),1)
+    procList=info("procedurestack")
+    folderArray=folderpath(folder(""))
+    sizeCheck=arraysize(folderArray,":")
+    smallFolderArray=arrayrange(folderArray,4,sizeCheck,":")
 
-  
-    
-    displaydata "You are missing the "+fileNeeded+" Panorama file in this folder and 
-    Cannot update information without it. Please move 
-    that file to the appropriate folder and try again"
+//See an example below this codebase of what this looks like 
+    displaydata "You are missing the '"+fileNeeded+"' Panorama file in this folder 
+    and can't continue "+mostRecentProc+" procedure without it. Please move a copy of
+    '"+fileNeeded+"' to the appropriate folder and try the procedure again"
     +¶+¶+¶+
-    "current folderpath is: "
+    "folder you're currently running from is: "
     +¶+
-    folderpath(folder(""))
+    smallFolderArray
     +¶+¶+¶+
-    "current Pan files in this folder are: "
+    "current Pan files in that folder are: "
     +¶+
     listfiles(folder(""),"????KASX")
+    +¶+¶+¶+
+    "Pressing 'Ok' will open the Finder to your current folder"
+    +¶+¶+
+    "Press 'Stop' will stop this procedure", {title="Missing File!!!!" captionwidth=900 size=17 height=500 width=800}
+    revealinfinder folder(""),""
     stop
+
 defaultcase
-    window fileNeeded
-    
+window fileNeeded
+
 endcase
+
+/*
+Example:
+
+You are missing the 'members' Panorama file in this folder 
+and can't continue this procedure without it. Please move a copy of
+'members' to the appropriate folder and try the procedure again
+
+
+folder you're currently running from is: 
+Desktop:Panorama:FY45 Panorama Projects:GetMacros:
+
+
+current Pan files in that folder are: 
+GetMacros
+GetMacrosDL
+GetMacros44
+
+
+Pressing 'Ok' will open the Finder to your current folder
+
+Press 'Stop' will stop this procedure
+*/
 
 debug
 
