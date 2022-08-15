@@ -299,7 +299,7 @@ serverlookup "off"
 ;waswindow=info("windowname")
 listzip=""
 thiszip=""
-newcity=""
+newcity=""ƒ
 again:
 findher=aray
 
