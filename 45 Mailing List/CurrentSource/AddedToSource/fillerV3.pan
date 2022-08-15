@@ -1,3 +1,7 @@
+
+
+window "45 mailing list"
+
 if S+T+Bf=0 and RedFlag=""
     yesno "- Customer has no catalogs requested"+¶+"- Customer has no RedFlag(s)"+¶+¶+"Autofill catalog requests by Zip/Order?"
     if clipboard()="Yes"
@@ -64,15 +68,29 @@ else
               message "Customer is now set to receive"
                         +¶+
                         "Seeds:"+str(S)+" Bulbs:"+str(Bf)+" Trees:"+str(T)
-            if S=1 and «M?» notcontains "X"
-                «M?»="X"+«M?»
-            endif
-            if T=1 and «M?» notcontains "W"
-                «M?»="W"+«M?»
-            endif
-            if Bf=1 and «M?» notcontains "z"
-                «M?»="Z"+«M?»
-            endif
+                if S≥1 and «M?» notcontains "X"
+                    «M?»="X"+«M?»
+                else 
+                    if S=0
+                    «M?»=?(«M?» contains "X",replace(«M?»,"X",""),«M?»)
+                    endif
+                endif
+
+                if T≥1 and «M?» notcontains "W"
+                    «M?»="W"+«M?»
+                else 
+                    if T=0
+                    «M?»=?(«M?» contains "W",replace(«M?»,"W",""),«M?»)
+                    endif
+                endif
+
+                if Bf≥1 and «M?» notcontains "Z"
+                    «M?»="Z"+«M?»
+                else 
+                    if Bf=0
+                    «M?»=?(«M?» contains "Z",replace(«M?»,"Z",""),«M?»)
+                    endif
+                endif
         endif
     endcase
 endif 

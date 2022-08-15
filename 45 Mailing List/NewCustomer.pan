@@ -6,7 +6,7 @@ endif
 case fromBranch contains "Seeds"
 Code = "I"+thisYear+"s"
 case fromBranch contains "OGS"
-code = "I"+thisYear+"s"
+code = "I"+thisYear+"o"
 case fromBranch contains "Trees"
 Code = "I"+thisYear+"t"
 
