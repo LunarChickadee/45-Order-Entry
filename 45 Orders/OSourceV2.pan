@@ -161,9 +161,9 @@ removeallsummaries
 ___ ENDPROCEDURE bulbs_exporter/b ______________________________________________
 
 ___ PROCEDURE .Initialize ______________________________________________________
-global n, raya, rayb, groupArray, rayc, rayd, raye, rayf, rayg, rayh, rayi, rayj, waswindow,
+global n, raya, rayb, groupArray, rayc, rayd, raye, rayf, rayg, rayh, rayi, conArray, memArray, waswindow,
 Com, Cost, Disc, VDisc, ODisc, stax,item, size,ono, vfax, state, sub, vzip,
-vd, adj, tax, f, gr, di, da,  three, secno, alt, oono, nu, oldtot, newtot, aray, taxable,
+vd, adj, tax, f, gr, di, da,  three, secno, alt, oono, nu, oldtot, newtot, addressArray, taxable,
 mailaddress, mailcopies, mailheader, messageBody, newyear, newpfile, rollingdisc,ID, taxable
 expressionstacksize 75000000
 ID=0
@@ -181,12 +181,13 @@ rayf=""
 rayg=""
 rayh=""
 rayi=0
-rayj=""
 mailaddress=""
 mailcopies=""
 mailheader=""
 messageBody=""
 newyear="45"
+conArray=""
+memArray=""
 ;; newpfile=?(today()<date("12/1/22"),"44","45")
 
 case folderpath(dbinfo("folder","")) contains "/ogs"
@@ -370,23 +371,23 @@ ___ PROCEDURE .coupon __________________________________________________________
 ;call .retotal
 ___ ENDPROCEDURE .coupon _______________________________________________________
 
-___ PROCEDURE .custnumber ______________________________________________________
-//this runs when C# is changed
+___ PROCEDURE ber ______________________________________________________
+//this runs when C# is changed in Orders
 //users are currently using two enters to get this to run during order entry
 waswindow=info("windowname")
 Global Num
 Num=«C#»
 ono=OrderNo
-aray=""
-rayj=""
+addressArray=""
+conArray=""
 
 
 if MAd≠""
-    aray=MAd+"."+pattern(Zip,"#####")
+    addressArray=MAd+"."+pattern(Zip,"#####")
 endif
 
 if Con≠""
-    rayj=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1]
+    conArray=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1]
 endif
 
 if «C#»=0
@@ -418,7 +419,7 @@ Num=«C#»
 window newyear+" mailing list"
 
 find «C#»=Num
-rayj=«Mem?»
+memArray=«Mem?»
 
 
 ///*********!! not sure if there's any need for this anymore
@@ -539,7 +540,7 @@ If info("formname")="treesinput" And Z≠ 0 and (OrderNo < 410000 or OrderNo > 4
     endcase
 endif
 
-if rayj="Y"
+if memArray="Y"
     call ".memberdisc"
 else
     MemDisc = 0
@@ -744,7 +745,7 @@ case OrderNo > 600000 and OrderNo < 700000
     Patronage=«OrderTotal»-RealTax
     
 case OrderNo > 400000 and OrderNo < 500000
-    rayj=?(«$Shipping»<18, "Y", "N")
+    memArray=?(«$Shipping»<18, "Y", "N")
     VolDisc=float(Subtotal)*float(Discount)
     MemDisc=float(Subtotal*.01)
     AdjTotal=Subtotal-VolDisc-MemDisc
@@ -1944,10 +1945,10 @@ ___ ENDPROCEDURE .refigure _____________________________________________________
 ___ PROCEDURE .refiguretreeshipping ____________________________________________
 local State
 State=""
-if rayj="Y"
+if memArray="Y"
     «$Shipping»=?(AdjTotal≤63, 10, AdjTotal*.16)
 endif
-if rayj="N"
+if memArray="N"
     Case ShipCode="U"
         «$Shipping»=?(AdjTotal≤141, 22.5, AdjTotal*.16)
     Case ShipCode="X"
@@ -2100,7 +2101,7 @@ case OrderNo > 400000 and OrderNo < 500000
     endif
     
     if «$Shipping»>22.50  //and MemDisc>0
-        rayj="N"
+        memArray="N"
         ;message "Please check shipping and adjust if needed."
         call ".refiguretreeshipping"
     endif
@@ -2197,16 +2198,16 @@ waswindow=info("windowname")
 vzip=Zip
 window zipwindow
 select ZipCode=vzip
-arrayselectedbuild aray,¶, "ZipCodeList", City+¬+State
+arrayselectedbuild addressArray,¶, "ZipCodeList", City+¬+State
 selectall
 window waswindow
-case arraysize(aray,¶)=0
+case arraysize(addressArray,¶)=0
     message "ZipCode not found, try again"
-case arraysize(aray,¶)=1
-    City=extract(aray,¬,1)
-    St=extract(aray,¬,2)
-case arraysize(aray,¶)>1
-    superchoicedialog aray, rayi, {height=400 width=500 font=Helvetica caption="Click on one and then hit OK or New for new entry" 
+case arraysize(addressArray,¶)=1
+    City=extract(addressArray,¬,1)
+    St=extract(addressArray,¬,2)
+case arraysize(addressArray,¶)>1
+    superchoicedialog addressArray, rayi, {height=400 width=500 font=Helvetica caption="Click on one and then hit OK or New for new entry" 
         captionfont=Times captionsize=12 captioncolor=red size=14 buttons="OK:100;Cancel:100"}
     if info("dialogtrigger") contains "OK"
         City=extract(rayi,¬,1)
@@ -2550,7 +2551,7 @@ EntryDate=today()
 ono=OrderNo
 vzip=Zip
 vd=«C#»
-rayj=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1]
+conArray=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1]
 place=MAd["0-9",-1][1,2]
 field «1stPayment»
 ;editcell
@@ -2584,7 +2585,7 @@ find Zip=vzip
 
 //Zip that's not in Mailaing List
 if info("found")=0
-    find Con contains extract(rayj," ",1)and Con contains extract(rayj," ",2)
+    find Con contains extract(conArray," ",1)and Con contains extract(conArray," ",2)
     if info("Found")=-1
         goto newentry
     else
@@ -2630,7 +2631,7 @@ if info("found")=-1
     if place ≠ ""
         find MAd contains place And Zip=vzip
         if info("found")=0
-            find Zip=vzip and Con contains extract(rayj," ",2)
+            find Zip=vzip and Con contains extract(conArray," ",2)
             if info("found")=-1
                 goto newentry
             endif

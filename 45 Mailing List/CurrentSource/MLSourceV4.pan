@@ -439,7 +439,7 @@ listzip=""
 thiszip=""
 newcity=""
 again:
-findher=aray
+findher=addressArray
 
 
 supergettext findher, {caption="Enter Address.Zip" height=100 width=400 captionfont=Times captionsize=14 captioncolor="cornflowerblue"
@@ -513,7 +513,7 @@ tryname:
     findname=""
     findname1=""
     findname2=""
-    findname=rayj
+    findname=conArray
     supergettext findname, {caption="Enter First and Last Name" height=100 width=400 captionfont=Times captionsize=14 captioncolor="limegreen"
     buttons="Find;Redo;Cancel"}
     firstname=extract(findname," ",1)
@@ -1759,8 +1759,8 @@ if «C#»≠vsourcecust
         endif
 endif
 
-farcall thisFYear+" mailing list", .SetVariables
-//**** This if clause may be an unnecessary diplication of the step above
+farcall (thisFYear+" mailing list"), .SetVariables
+//**** This if clause may be an unnecessary diplication of the step above**//
 if «C#»≠vtargetcust
     find «C#»=vtargetcust
         if info("found")=0
@@ -1770,7 +1770,7 @@ if «C#»≠vtargetcust
             ;Message "found target record" 
         endif
 endif
-//**************************
+//**************************//
 if CChistory=""
     CChistory=str(vsourcecust)
         else
@@ -1815,7 +1815,7 @@ if vEquity≠0
     endif
 endif
 
-farcall thisFYear+" mailing list", .FillTargetFields
+farcall (thisFYear+" mailing list"), .FillTargetFields
 
 «45Total»=S45+Bf45+M45+T45
 «44Total»=S44+Bf44+M44+T44
