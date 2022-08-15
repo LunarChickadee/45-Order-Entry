@@ -89,3 +89,7 @@ endif
 
 
 use magicwindow to set the dimentions for the order entry windows see "Magicwindow" in the reference
+
+
+Theres a lot of things that do a find and then if it doesnt find someone, it just adds a record
++++you need more than just that loop on those 

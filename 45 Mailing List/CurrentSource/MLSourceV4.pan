@@ -1,7 +1,9 @@
 ___ PROCEDURE .Initialize ______________________________________________________
-//since so many pan setups don't have the preferences set to not open new database wizard
-//this window will try to pop up when people start their day and stall the opening of
-//other files -L 22
+//______________Gets rid of "New Database Wizard______
+//locally, you can do this in the Preferences menu, but this
+//is more glboal for all users to have that functionality
+//____________________________________________________
+
 local thisFile
 
 thisFile=info("databasename")
@@ -13,9 +15,9 @@ if info("windows") contains "New Database Wizard"
 endif
 until info("windows") notcontains "New Database Wizard"
 
-////Variables need to be redeclared for the above loop to not break the file
+////Variables need to be declared after the above loop has finished to not break
 global New, Num, Numb, enter, place, ID, CC, ED, credit, orders, ship, Flag, waswindow, vfindcurrent, vGlobeSerialNum, thisFYear, lastFYear
-fileglobal searchcust, findcust, getcust, searchname, findname, getname, findcurrent, vSerialNum
+fileglobal searchcust, findcust, getcust, searchname, findname, vGetName, findcurrent, vSerialNum
 
 
 //________.AutomateFY from GetMacros file________________//
@@ -73,6 +75,7 @@ call "listsortcomplete/1"
 endnoshow
 waswindow = info("DatabaseName") 
 
+///___sets the virtual serial number
 case lower(folderpath(dbinfo("folder",""))) contains "dedup"
 vSerialNum="2074269900"
 vGlobeSerialNum="2074269900"
@@ -107,7 +110,7 @@ defaultcase
 endcase
 
 
-//////#Change this to a folder specific
+//////#Changeed this to a folder specific macro
 if vGlobeSerialNum contains "2074269900"
 setwindow  290,127,800,1059,""
 openform "customeractivity"
@@ -115,6 +118,7 @@ window  waswindow
 zoomwindow 26,429,346,1280,"" //I think this was causing issues
 showpage
 endif
+
 ///#edit this one too
 if vGlobeSerialNum notcontains "2074269900"
 Openfile lastFYear+"orders"
@@ -142,7 +146,7 @@ message "All Done Loading Mailing List!"
 
 moved 3/11/22
 SerialNumberFind for an old way of doing deduplication
-vGlobeSerialNum=grabfilevariable("45 mailing list", vSerialNum)
+vGlobeSerialNum=grabfilevariable(thisFYear+" mailing list", vSerialNum)
 //added to get the customeractivity form to open for those doing mailing list deduplicaiton work -rach
 
 //vSerialNum="73229.osmegmce, 81405.swjgkecx, 81408.H%v"
@@ -153,93 +157,81 @@ ___ ENDPROCEDURE .Initialize ___________________________________________________
 
 ___ PROCEDURE .addmember _______________________________________________________
 
-///*********This is the FileChecker macro in GetMacros
-local fileNeeded,folderArray,smallFolderArray,sizeCheck, procList, mostRecentProc
+ 
+///____________________________________________________________________________________________________________________________________
+///____________________________________________________________________________________________________________________________________
+///________________________________This is the .FileChecker macro in GetMacros_________________________________________________________
+///____________________________________________________________________________________________________________________________________
+///____________________________________________________________________________________________________________________________________
 
+
+local fileNeeded,folderArray,smallFolderArray,sizeCheck,
+procList,sizeCheck,procNames,procDBs,mostRecentProc 
+
+///________________________EDITME_____________
 //replace this with whatever file you're error checking
 //----------------------//
 fileNeeded="members"    //
 //----------------------//
 
 
+////_____Got the file, but it's not open?_______________
+
 case info("files") notcontains fileNeeded and listfiles(folder(""),"????KASX") contains fileNeeded
-openfile fileNeeded
+    openfile fileNeeded
+
+///________Don't got the file?__________________
 
 case listfiles(folder(""),"????KASX") notcontains fileNeeded
-    mostRecentProc=tabarray(nthline(info("procedurestack"),1),1)
-    procList=info("procedurestack")
+
+
+    procList=arraystrip(info("procedurestack"),¶)
+    sizeCheck=arraysize(procList,¶)
+        if sizeCheck>1
+            procList=arrayrange(procList,2,sizeCheck,¶) //this is to exclude getting recursive info about this macro, especially while testing
+        else
+            procList=arraystrip(info("procedurestack"),¶)
+        endif
+
+    procNames=arraycolumn(procList,1,¶,¬)
+    procDBs=arraycolumn(procList,2,¶,¬)
+    mostRecentProc=array(procNames,1,¶) 
     folderArray=folderpath(folder(""))
     sizeCheck=arraysize(folderArray,":")
     smallFolderArray=arrayrange(folderArray,4,sizeCheck,":")
 
-//See an example below this codebase of what this looks like 
-    displaydata "You are missing the '"+fileNeeded+"' Panorama file in this folder 
-    and can't continue "+mostRecentProc+" procedure without it. Please move a copy of
-    '"+fileNeeded+"' to the appropriate folder and try the procedure again"
-    +¶+¶+¶+
-    "folder you're currently running from is: "
-    +¶+
-    smallFolderArray
-    +¶+¶+¶+
-    "current Pan files in that folder are: "
-    +¶+
-    listfiles(folder(""),"????KASX")
-    +¶+¶+¶+
-    "Pressing 'Ok' will open the Finder to your current folder"
-    +¶+¶+
-    "Press 'Stop' will stop this procedure", {title="Missing File!!!!" captionwidth=900 size=17 height=500 width=800}
+displaydata "Error:"
++¶+
+"You are missing the '"+fileNeeded+
+"' Panorama file in this folder 
+and can't continue the '"+mostRecentProc+"' procedure without it. 
+Please move a copy of '"+fileNeeded+
+"' to the appropriate folder and try the procedure again"
++¶+¶+¶+
+"folder you're currently running from is: "
++¶+
+smallFolderArray
++¶+¶+¶+
+"current Pan files in that folder are: "
++¶+
+listfiles(folder(""),"????KASX")
++¶+¶+¶+
+"Pressing 'Ok' will open the Finder to your current folder"
++¶+¶+
+"Press 'Stop' will stop this procedure", “title="Missing File!!!!" captionwidth=900 size=17 height=500 width=800” //note: these are "SmartQuotes" Ctrl+[ and Ctrl+opt+[
+
     revealinfinder folder(""),""
     stop
+
+///_______File is open, but not active?______
 
 defaultcase
 window fileNeeded
 
 endcase
 
-/*
-Example:
+call .appendCustomer,"member"
 
-You are missing the 'members' Panorama file in this folder 
-and can't continue this procedure without it. Please move a copy of
-'members' to the appropriate folder and try the procedure again
-
-
-folder you're currently running from is: 
-Desktop:Panorama:FY45 Panorama Projects:GetMacros:
-
-
-current Pan files in that folder are: 
-GetMacros
-GetMacrosDL
-GetMacros44
-
-
-Pressing 'Ok' will open the Finder to your current folder
-
-Press 'Stop' will stop this procedure
-*/
-
-debug
-
-lastrecord
-insertbelow
-«C#»=grabdata("45 mailing list", «C#»)
-Con=grabdata("45 mailing list", Con)
-Group=grabdata("45 mailing list", Group)
-MAd=grabdata("45 mailing list", MAd)
-City=grabdata("45 mailing list", City)
-St=grabdata("45 mailing list", St)
-Zip=grabdata("45 mailing list", Zip)
-SAd=grabdata("45 mailing list", SAd)
-Cit=grabdata("45 mailing list", Cit)
-Sta=grabdata("45 mailing list", Sta)
-Z=grabdata("45 mailing list", Z)
-phone=grabdata("45 mailing list", phone)
-email=grabdata("45 mailing list", email)
-inqcode=grabdata("45 mailing list", inqcode)
-«Mem?»=grabdata("45 mailing list", «Mem?»)
-windowtoback "members"
-window "45 mailing list"
 ___ ENDPROCEDURE .addmember ____________________________________________________
 
 ___ PROCEDURE NewRecord ________________________________________________________
@@ -248,35 +240,73 @@ if info("trigger") ="New.Return"
 else
     Synchronize
     beep
-endif
+endif
 ___ ENDPROCEDURE NewRecord _____________________________________________________
 
 ___ PROCEDURE .DeleteRecord ____________________________________________________
+global cNumVal,hasAnAddress,hasACon
+
+cNumVal=0
+hasACon=""
+hasAnAddress=""
+
 field «C#»
-copycell
-YesNo "delete this record?" +" "+ str(«C#») + " "+ Con
-if clipboard()="No"
-stop
-endif
+    copycell
+    cNumVal=val(clipboard())
+
+hasAnAddress=?(MAd≠"",MAd+" "+str(St),"No Mailing Address")
+
+case «Con»="" and «Group»=""
+    hasACon = "No Name or Group"
+case «Con»≠"" and «Group»≠""
+    hasACon = «Con»+"|"+«Group»
+defaultcase
+    hasACon =«Con»
+endcase
+
+YesNo "Delete Customer #:"+str(«C#»)+"?"+¶+"Con: "+hasACon+¶+"MAd: "+hasAnAddress
+    if clipboard()="No"
+    stop
+    endif
 deleterecord
-if val(clipboard())>0
-window "customer_history:customeractivity"
-if «C#»≠val(clipboard())
-find «C#»=val(clipboard())
-if info("found")=0
-window "45 mailing list"
-stop
+
+if cNumVal>0
+    window "customer_history:customeractivity"
+        //___checks if they have information_________________
+        case «Con»="" and «Group»=""
+            hasACon = "No Name or Group"
+        case «Con»≠"" and «Group»≠""
+            hasACon = «Con»+"|"+«Group»
+        defaultcase
+            hasACon =«Con»
+        endcase
+
+        hasAnAddress=?(MAd≠"",MAd+" "+str(St),"No Mailing Address")
+
+        //___________________________________________________
+        
+    if «C#»≠cNumVal
+        find «C#»=cNumVal
+            if info("found")=0
+                window thisFYear+" mailing list"
+                stop
+            else
+                YesNo "delete in customer history?"+¶+str(«C#»)+" "+hasACon+¶+hasAnAddress
+                if clipboard()="Yes"
+                    deleterecord
+                endif
+            endif
+    endif
 endif
-endif
-YesNo "delete this record in customer history?" +" "+ str(«C#») + " "+ Con
-if clipboard()="Yes"
-deleterecord
-endif
-window "45 mailing list"
-endif
+
+window thisFYear+" mailing list"
 if info("selected")<info("records")
-downrecord
+    downrecord
 endif
+
+
+
+
 ___ ENDPROCEDURE .DeleteRecord _________________________________________________
 
 ___ PROCEDURE .KeyDown _________________________________________________________
@@ -290,15 +320,15 @@ case KeyStroke=chr(31)
 ;endif
 ;window "inquiries&changes:change"
 ;downrecord
-;window "45 mailing list:customer history"
+;window thisFYear+" mailing list:customer history"
 ;else
 ;downrecord
 ;endif
 if info("formname")="addresschecker"
 downrecord
-window "45orders:seedsinput"
+window thisFYear+"orders:seedsinput"
 downrecord
-window "45 mailing list:addresschecker"
+window thisFYear+" mailing list:addresschecker"
 endif
 defaultcase
     key info("modifiers"), KeyStroke
@@ -306,7 +336,7 @@ defaultcase
 ___ ENDPROCEDURE .KeyDown ______________________________________________________
 
 ___ PROCEDURE .customer ________________________________________________________
-OpenFile "45orders"
+OpenFile thisFYear+"orders"
 Case Numb>300000 And Numb<400000
     GoForm "ogsinput"
 Case Numb>400000 And Numb<500000
@@ -324,10 +354,10 @@ ___ ENDPROCEDURE .customer _____________________________________________________
 
 ___ PROCEDURE .findcustomer ____________________________________________________
 if info("trigger")="Button.Find Customer"
-if info("files") contains "45orders"
+if info("files") contains thisFYear+"orders"
 goto continue
 else
-opensecret "45orders"
+opensecret thisFYear+"orders"
 endif
 continue:
 endif
@@ -354,7 +384,7 @@ ___ PROCEDURE .holdit __________________________________________________________
 global VC
 VC=«C#»
 If «C#»=0
-field Group
+field «Group»
 editcellstop
 endif
 If info("changes")≠0
@@ -385,20 +415,20 @@ find «C#»=Num
 if info("found")=0
 insertrecord
 «C#»=Num
-Con=grabdata("45 mailing list", Con)
-Group=grabdata("45 mailing list", Group)
+Con=grabdata(thisFYear+" mailing list", Con)
+«Group»=grabdata(thisFYear+" mailing list", «Group»)
 endif
-;Con=grabdata("45 mailing list", Con)
-;Group=grabdata("45 mailing list", Group)
-MAd=grabdata("45 mailing list", MAd)
-City=grabdata("45 mailing list", City)
-St=grabdata("45 mailing list", St)
-Zip=grabdata("45 mailing list", Zip)
-SpareText2=grabdata("45 mailing list", SpareText2)
+;Con=grabdata(thisFYear+" mailing list", Con)
+;«Group»=grabdata(thisFYear+" mailing list", «Group»)
+MAd=grabdata(thisFYear+" mailing list", MAd)
+City=grabdata(thisFYear+" mailing list", City)
+St=grabdata(thisFYear+" mailing list", St)
+Zip=grabdata(thisFYear+" mailing list", Zip)
+SpareText2=grabdata(thisFYear+" mailing list", SpareText2)
 Notes=replace(Notes, "Bad Address","")
 Num=0
 endif
-window "45 mailing list"
+window thisFYear+" mailing list"
 ___ ENDPROCEDURE .MAd __________________________________________________________
 
 ___ PROCEDURE .newzip __________________________________________________________
@@ -421,7 +451,7 @@ supergettext findher, {caption="Enter Address.Zip" height=100 width=400 captionf
             findzip="0"+findzip
             endif
         findcity=extract(findher,".",1)
-        liveclairvoyance findzip,listzip,¶,"","45 mailing list",pattern(Zip,"#####"),"=",str(«C#»)+¬+rep(" ",7-length(str(«C#»)))+Con+rep(" ",max(20-length(Con),1))+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####"),0,0,""
+        liveclairvoyance findzip,listzip,¶,"",thisFYear+" mailing list",pattern(Zip,"#####"),"=",str(«C#»)+¬+rep(" ",7-length(str(«C#»)))+Con+rep(" ",max(20-length(Con),1))+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####"),0,0,""
         arraysubset listzip, listzip, ¶, import() contains findcity
             if listzip=""
             goto lastzip
@@ -489,7 +519,7 @@ tryname:
     firstname=extract(findname," ",1)
      lastname=extract(findname," ",2)
     if info("dialogtrigger") contains "Find"
-        liveclairvoyance lastname,findname1,¶,"","45 mailing list",Con,"contains",Con+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####")+¬+phone,0,0,""
+        liveclairvoyance lastname,findname1,¶,"",thisFYear+" mailing list",Con,"contains",Con+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####")+¬+phone,0,0,""
         message findname1
     endif
     
@@ -526,7 +556,7 @@ tryname:
      if info("dialogtrigger") contains "New"
         gettext "Which town?", newcity
         if newcity≠""
-            window "45 mailing list"
+            window thisFYear+" mailing list"
             find Z=val(findzip) and City contains newcity
             insertbelow
         else
@@ -579,18 +609,18 @@ if «C#»>0
         lastrecord
         insertbelow
     endif
-    «C#»=grabdata("45 mailing list", «C#»)
-    Con=grabdata("45 mailing list", Con)
-    Group=grabdata("45 mailing list", Group)
-    MAd=grabdata("45 mailing list", MAd)
-    City=grabdata("45 mailing list", City)
-    St=grabdata("45 mailing list", St)
-    Zip=grabdata("45 mailing list", Zip)
-    «SpareText2»=grabdata("45 mailing list", «SpareText2»)
+    «C#»=grabdata(thisFYear+" mailing list", «C#»)
+    Con=grabdata(thisFYear+" mailing list", Con)
+    «Group»=grabdata(thisFYear+" mailing list", «Group»)
+    MAd=grabdata(thisFYear+" mailing list", MAd)
+    City=grabdata(thisFYear+" mailing list", City)
+    St=grabdata(thisFYear+" mailing list", St)
+    Zip=grabdata(thisFYear+" mailing list", Zip)
+    «SpareText2»=grabdata(thisFYear+" mailing list", «SpareText2»)
     ;closewindow
     ;window "customer_history:customeractivity"
 
-    window "45 mailing list"
+    window thisFYear+" mailing list"
 endif
 
 
@@ -598,51 +628,61 @@ ___ ENDPROCEDURE .tab1 _________________________________________________________
 
 ___ PROCEDURE .member __________________________________________________________
 if «Mem?»≠"Y"
-stop
+    stop
 endif
+
 if «C#»=0
-Code= "45mem"
-openfile "Customer#"
-call "newnumber"
-window "45 mailing list"
-Field «C#»
-Paste
-SpareText2=str(«C#»)
-if S=0
-call "filler/¬"
+    Code= thisFYear+"mem"
+    openfile "Customer#"
+    call "newnumber"
+
+    window thisFYear+" mailing list"
+        Field «C#»
+        Paste
+        SpareText2=str(«C#»)
+        if S=0 or T=0 or Bf=0
+        call "filler/¬"
 endif
+
 field inqcode
+
 window "customer_history"
-insertbelow
-«C#»=grabdata("45 mailing list", «C#»)
-Group=grabdata("45 mailing list", Group)
-Con=grabdata("45 mailing list", Con)
-MAd=grabdata("45 mailing list", MAd)
-City=grabdata("45 mailing list", City)
-St=grabdata("45 mailing list", St)
-Zip=grabdata("45 mailing list", Zip)
-Email=grabdata("45 mailing list", email)
-SpareText2=grabdata("45 mailing list", SpareText2)
-;CloseWindow
-window "45 mailing list"
-field Notes
-field «inqcode»
-endif
-Num=«C#»
+    insertbelow
+    «C#»=grabdata(thisFYear+" mailing list", «C#»)
+    «Group»=grabdata(thisFYear+" mailing list", «Group»)
+    Con=grabdata(thisFYear+" mailing list", Con)
+    MAd=grabdata(thisFYear+" mailing list", MAd)
+    City=grabdata(thisFYear+" mailing list", City)
+    St=grabdata(thisFYear+" mailing list", St)
+    Zip=grabdata(thisFYear+" mailing list", Zip)
+    Email=grabdata(thisFYear+" mailing list", email)
+    SpareText2=grabdata(thisFYear+" mailing list", SpareText2)
+    ;CloseWindow
+
+window thisFYear+" mailing list"
+    field Notes
+    field «inqcode»
+    endif
+    Num=«C#»
+
 window "customer_history:secret"
-find «C#»=Num
-if NewMember notcontains "joined"
-NewMember=NewMember+"joined on "+datepattern(today(),"mm/dd/yy")
-endif
-field «Equity»
-getscrap "How much equity?"
-«Equity»=val(clipboard())
-window "45 mailing list"
-call .addmember
+    find «C#»=Num
+    if NewMember notcontains "joined"
+    NewMember=NewMember+"joined on "+datepattern(today(),"mm/dd/yy")
+    endif
+    field «Equity»
+    getscrap "How much equity?"
+    «Equity»=val(clipboard())
+
+window thisFYear+" mailing list"
+    call .addmember
 ___ ENDPROCEDURE .member _______________________________________________________
 
 ___ PROCEDURE listsortcomplete/1 _______________________________________________
 Hide
+//___added this to stop showing mostly empty records on initialize
+select str(«C#»)+Con+MAd+City ≠ "0"
+//___  -L 8/22
 Field "MAd"
 SortUp
 Field "City"
@@ -653,7 +693,6 @@ Field "Zip"
 SortUp
 Show
 Field «C#»
-
 
 
 ___ ENDPROCEDURE listsortcomplete/1 ____________________________________________
@@ -695,15 +734,15 @@ endif
 window "customer_history:secret"
 opensheet
 insertbelow
-«C#»=grabdata("45 mailing list", «C#»)
-Group=grabdata("45 mailing list", Group)
-Con=grabdata("45 mailing list", Con)
-MAd=grabdata("45 mailing list", MAd)
-City=grabdata("45 mailing list", City)
-St=grabdata("45 mailing list", St)
-Zip=grabdata("45 mailing list", Zip)
-Email=grabdata("45 mailing list", email)
-SpareText2=grabdata("45 mailing list", SpareText2)
+«C#»=grabdata(thisFYear+" mailing list", «C#»)
+«Group»=grabdata(thisFYear+" mailing list", «Group»)
+Con=grabdata(thisFYear+" mailing list", Con)
+MAd=grabdata(thisFYear+" mailing list", MAd)
+City=grabdata(thisFYear+" mailing list", City)
+St=grabdata(thisFYear+" mailing list", St)
+Zip=grabdata(thisFYear+" mailing list", Zip)
+Email=grabdata(thisFYear+" mailing list", email)
+SpareText2=grabdata(thisFYear+" mailing list", SpareText2)
 ;CloseWindow
 window waswindow
 ___ ENDPROCEDURE createcustomer/µ ______________________________________________
@@ -712,10 +751,10 @@ ___ PROCEDURE cc rider/ç ______________________________________________________
 waswindow=info("windowname")
 serverlookup "off"
 if info("trigger")="Button.Find Customer #"
-if info("files") contains "45orders"
+if info("files") contains thisFYear+"orders"
 goto continue
 else
-opensecret "45orders"
+opensecret thisFYear+"orders"
 endif
 continue:
 endif
@@ -735,7 +774,7 @@ ___ ENDPROCEDURE cc rider/ç ___________________________________________________
 ___ PROCEDURE entering/√ _______________________________________________________
 getscrap "Next! (all 6 digits, please)"
 Numb=val(clipboard())
-OpenFile "45orders"
+OpenFile thisFYear+"orders"
 ReSynchronize
 field OrderNo
 sortup
@@ -842,7 +881,7 @@ endif
 Code= "I45s"
 openfile "Customer#"
 call "newnumber"
-window "45 mailing list"
+window thisFYear+" mailing list"
 Field «C#»
 Paste
 SpareText2=str(«C#»)
@@ -858,17 +897,17 @@ endif
 window "customer_history:secret"
 opensheet
 insertbelow
-«C#»=grabdata("45 mailing list", «C#»)
-Group=grabdata("45 mailing list", Group)
-Con=grabdata("45 mailing list", Con)
-MAd=grabdata("45 mailing list", MAd)
-City=grabdata("45 mailing list", City)
-St=grabdata("45 mailing list", St)
-Zip=grabdata("45 mailing list", Zip)
-Email=grabdata("45 mailing list", email)
-SpareText2=grabdata("45 mailing list", SpareText2)
+«C#»=grabdata(thisFYear+" mailing list", «C#»)
+«Group»=grabdata(thisFYear+" mailing list", «Group»)
+Con=grabdata(thisFYear+" mailing list", Con)
+MAd=grabdata(thisFYear+" mailing list", MAd)
+City=grabdata(thisFYear+" mailing list", City)
+St=grabdata(thisFYear+" mailing list", St)
+Zip=grabdata(thisFYear+" mailing list", Zip)
+Email=grabdata(thisFYear+" mailing list", email)
+SpareText2=grabdata(thisFYear+" mailing list", SpareText2)
 ;CloseWindow
-window "45 mailing list"
+window thisFYear+" mailing list"
 Call "enter/e"
 
 ___ ENDPROCEDURE seedy/ß _______________________________________________________
@@ -880,7 +919,7 @@ endif
 Code="I45o"
 openfile "Customer#"
 call "newnumber"
-window "45 mailing list"
+window thisFYear+" mailing list"
 Field «C#»
 Paste
 SpareText2=str(«C#»)
@@ -895,17 +934,17 @@ endif
 window "customer_history:secret"
 opensheet
 insertbelow
-«C#»=grabdata("45 mailing list", «C#»)
-Group=grabdata("45 mailing list", Group)
-Con=grabdata("45 mailing list", Con)
-MAd=grabdata("45 mailing list", MAd)
-City=grabdata("45 mailing list", City)
-St=grabdata("45 mailing list", St)
-Zip=grabdata("45 mailing list", Zip)
-Email=grabdata("45 mailing list", email)
-SpareText2=grabdata("45 mailing list", SpareText2)
+«C#»=grabdata(thisFYear+" mailing list", «C#»)
+«Group»=grabdata(thisFYear+" mailing list", «Group»)
+Con=grabdata(thisFYear+" mailing list", Con)
+MAd=grabdata(thisFYear+" mailing list", MAd)
+City=grabdata(thisFYear+" mailing list", City)
+St=grabdata(thisFYear+" mailing list", St)
+Zip=grabdata(thisFYear+" mailing list", Zip)
+Email=grabdata(thisFYear+" mailing list", email)
+SpareText2=grabdata(thisFYear+" mailing list", SpareText2)
 ;CloseWindow
-window "45 mailing list"
+window thisFYear+" mailing list"
 Call "enter/e"
 
 
@@ -919,7 +958,7 @@ endif
 Code= "I45m"
 openfile "Customer#"
 call "newnumber"
-window "45 mailing list"
+window thisFYear+" mailing list"
 Field «C#»
 Paste
 SpareText2=str(«C#»)
@@ -934,17 +973,17 @@ endif
 window "customer_history:secret"
 opensheet
 insertbelow
-«C#»=grabdata("45 mailing list", «C#»)
-Group=grabdata("45 mailing list", Group)
-Con=grabdata("45 mailing list", Con)
-MAd=grabdata("45 mailing list", MAd)
-City=grabdata("45 mailing list", City)
-St=grabdata("45 mailing list", St)
-Zip=grabdata("45 mailing list", Zip)
-Email=grabdata("45 mailing list", email)
-SpareText2=grabdata("45 mailing list", SpareText2)
+«C#»=grabdata(thisFYear+" mailing list", «C#»)
+«Group»=grabdata(thisFYear+" mailing list", «Group»)
+Con=grabdata(thisFYear+" mailing list", Con)
+MAd=grabdata(thisFYear+" mailing list", MAd)
+City=grabdata(thisFYear+" mailing list", City)
+St=grabdata(thisFYear+" mailing list", St)
+Zip=grabdata(thisFYear+" mailing list", Zip)
+Email=grabdata(thisFYear+" mailing list", email)
+SpareText2=grabdata(thisFYear+" mailing list", SpareText2)
 ;CloseWindow
-window "45 mailing list"
+window thisFYear+" mailing list"
 Call "enter/e"
 
 
@@ -959,7 +998,7 @@ endif
 Code="I45t"
 openfile "Customer#"
 call "newnumber"
-window "45 mailing list"
+window thisFYear+" mailing list"
 Field «C#»
 Paste
 SpareText2=str(«C#»)
@@ -977,17 +1016,17 @@ endif
 window "customer_history:secret"
 opensheet
 insertbelow
-«C#»=grabdata("45 mailing list", «C#»)
-Group=grabdata("45 mailing list", Group)
-Con=grabdata("45 mailing list", Con)
-MAd=grabdata("45 mailing list", MAd)
-City=grabdata("45 mailing list", City)
-St=grabdata("45 mailing list", St)
-Zip=grabdata("45 mailing list", Zip)
-Email=grabdata("45 mailing list", email)
-SpareText2=grabdata("45 mailing list", SpareText2)
+«C#»=grabdata(thisFYear+" mailing list", «C#»)
+«Group»=grabdata(thisFYear+" mailing list", «Group»)
+Con=grabdata(thisFYear+" mailing list", Con)
+MAd=grabdata(thisFYear+" mailing list", MAd)
+City=grabdata(thisFYear+" mailing list", City)
+St=grabdata(thisFYear+" mailing list", St)
+Zip=grabdata(thisFYear+" mailing list", Zip)
+Email=grabdata(thisFYear+" mailing list", email)
+SpareText2=grabdata(thisFYear+" mailing list", SpareText2)
 ;CloseWindow
-window "45 mailing list"
+window thisFYear+" mailing list"
 Call "enter/e"
 
 ___ ENDPROCEDURE treed/† _______________________________________________________
@@ -999,7 +1038,7 @@ endif
 Code= "I45b"
 openfile "Customer#"
 call "newnumber"
-window "45 mailing list"
+window thisFYear+" mailing list"
 Field «C#»
 Paste
 SpareText2=str(«C#»)
@@ -1017,17 +1056,17 @@ endif
 window "customer_history:secret"
 opensheet
 insertbelow
-«C#»=grabdata("45 mailing list", «C#»)
-Group=grabdata("45 mailing list", Group)
-Con=grabdata("45 mailing list", Con)
-MAd=grabdata("45 mailing list", MAd)
-City=grabdata("45 mailing list", City)
-St=grabdata("45 mailing list", St)
-Zip=grabdata("45 mailing list", Zip)
-Email=grabdata("45 mailing list", email)
-SpareText2=grabdata("45 mailing list", SpareText2)
+«C#»=grabdata(thisFYear+" mailing list", «C#»)
+«Group»=grabdata(thisFYear+" mailing list", «Group»)
+Con=grabdata(thisFYear+" mailing list", Con)
+MAd=grabdata(thisFYear+" mailing list", MAd)
+City=grabdata(thisFYear+" mailing list", City)
+St=grabdata(thisFYear+" mailing list", St)
+Zip=grabdata(thisFYear+" mailing list", Zip)
+Email=grabdata(thisFYear+" mailing list", email)
+SpareText2=grabdata(thisFYear+" mailing list", SpareText2)
 ;CloseWindow
-window "45 mailing list"
+window thisFYear+" mailing list"
 Call "enter/e"
 
 ___ ENDPROCEDURE bulbous/∫ _____________________________________________________
@@ -1083,7 +1122,7 @@ supergettext findher, {caption="Enter Address.Zip or .Zip to find everyone" heig
             findzip="0"+findzip
         endif
         findaddress=extract(findher,".",1)
-        liveclairvoyance findzip,listzip,¶,"","45 mailing list",pattern(Zip,"#####"),"=",str(«C#»)+¬+rep(" ",7-length(str(«C#»)))+Con+rep(" ",max(20-length(Con),1))+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####"),0,0,""
+        liveclairvoyance findzip,listzip,¶,"",thisFYear+" mailing list",pattern(Zip,"#####"),"=",str(«C#»)+¬+rep(" ",7-length(str(«C#»)))+Con+rep(" ",max(20-length(Con),1))+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####"),0,0,""
         if findaddress=""
             sortzip=listzip
         else
@@ -1224,7 +1263,7 @@ ___ ENDPROCEDURE tempaway/y ____________________________________________________
 ___ PROCEDURE copy city/3 ______________________________________________________
 local address
 UpRecord
-arraylinebuild address,¬,"45 mailing list", City+¬+St+¬+str(Zip)+¬+str(adc)+¶
+arraylinebuild address,¬,thisFYear+" mailing list", City+¬+St+¬+str(Zip)+¬+str(adc)+¶
 DownRecord
 City=extract(address, ¬,1)
 St=extract(address, ¬,2)
@@ -1239,36 +1278,48 @@ local hasBranchInfo
 added 8/22 by Lunar
 */
 
-//new customer or customer with no redflags that isn't getting cat requests
-//uses what branch you entred from
+
+
+window thisFYear+" mailing list"
+
 if S+T+Bf=0 and RedFlag=""
     yesno "- Customer has no catalogs requested"+¶+"- Customer has no RedFlag(s)"+¶+¶+"Autofill catalog requests by Zip/Order?"
     if clipboard()="Yes"
         Case Zip < 19000  And Zip>1000
             S=1
+            «M?»=?(«M?» notcontains "X","X"+«M?»,«M?»)
             T=1
+            «M?»=?(«M?» notcontains "W","W"+«M?»,«M?»)
             Bf=1
+            «M?»=?(«M?» notcontains "Z","Z"+«M?»,«M?»)
         Case (Zip > 43000 And Zip < 46000) 
         or (Zip > 48000 And Zip < 50000) 
         or (Zip > 53000 And Zip < 57000) 
         or Zip>97000
             S=1
+            «M?»=?(«M?» notcontains "X","X"+«M?»,«M?»)
             T=1
+            «M?»=?(«M?» notcontains "W","W"+«M?»,«M?»)
+            ///add an if ono or fromBranch=bulbs change this
             Bf=0
+            «M?»=?(«M?» contains "Z",replace(«M?»,"Z",""),«M?»)
         DefaultCase
             S=1
+            «M?»=?(«M?» notcontains "X","X"+«M?»,«M?»)
             T=0
+            //same for trees and bulbs here
+            «M?»=?(«M?» contains "W",replace(«M?»,"W",""),«M?»)
             Bf=0
+            «M?»=?(«M?» contains "Z",replace(«M?»,"Z",""),«M?»)
         endcase     
     endif 
 else 
-//clear if redflagged
     case RedFlag≠""
         message "Customer has a RedFlag."+¶+"Catalog requests will be set to zero"
             S=0
             T=0
             Bf=0
-    //offer the user the chance to change things if they want. Defaults to no for order entry
+            «M?»=""
     defaultcase 
     noyes "Update Catalog Requests?"
     +¶+
@@ -1278,6 +1329,7 @@ else
     
     //make this smart enough to only say whaty they're getting?
         if clipboard()="Yes"
+
         ///this loop is from .UpdateCats
             loop
                 rundialog
@@ -1296,9 +1348,33 @@ else
               message "Customer is now set to receive"
                         +¶+
                         "Seeds:"+str(S)+" Bulbs:"+str(Bf)+" Trees:"+str(T)
+                if S≥1 and «M?» notcontains "X"
+                    «M?»="X"+«M?»
+                else 
+                    if S=0
+                    «M?»=?(«M?» contains "X",replace(«M?»,"X",""),«M?»)
+                    endif
+                endif
+
+                if T≥1 and «M?» notcontains "W"
+                    «M?»="W"+«M?»
+                else 
+                    if T=0
+                    «M?»=?(«M?» contains "W",replace(«M?»,"W",""),«M?»)
+                    endif
+                endif
+
+                if Bf≥1 and «M?» notcontains "Z"
+                    «M?»="Z"+«M?»
+                else 
+                    if Bf=0
+                    «M?»=?(«M?» contains "Z",replace(«M?»,"Z",""),«M?»)
+                    endif
+                endif
         endif
     endcase
 endif 
+
 
 
 
@@ -1445,7 +1521,7 @@ ___ ENDPROCEDURE inq&change ____________________________________________________
 
 ___ PROCEDURE Find Return ______________________________________________________
 Select Con Contains Chr(13)
-SelectAdditional Group Contains Chr(13)
+SelectAdditional «Group» Contains Chr(13)
 SelectAdditional MAd Contains Chr(13)
 SelectAdditional City Contains Chr(13)
 SelectAdditional St Contains Chr(13)
@@ -1497,9 +1573,9 @@ ___ ENDPROCEDURE forcesynchronize ______________________________________________
 ___ PROCEDURE openall __________________________________________________________
 Openfile "customer_hIstory"
 Hide
-Openfile "45orders"
+Openfile thisFYear+"orders"
 Openfile "Customer#"
-Opensecret "45orders"
+Opensecret thisFYear+"orders"
 Hide
 
 window  waswindow
@@ -1558,15 +1634,15 @@ ___ ENDPROCEDURE selectduplicates ______________________________________________
 ___ PROCEDURE checksize ________________________________________________________
 local addressblock
 addressblock=""
-addressblock=?(Group≠"",Group+¶+Con, Con)+¶+MAd+¶+City+¬+St+¬+pattern(Zip,"#####")
+addressblock=?(Group≠"",«Group»+¶+Con, Con)+¶+MAd+¶+City+¬+St+¬+pattern(Zip,"#####")
 select arraysize(addressblock,¶)>4
 ___ ENDPROCEDURE checksize _____________________________________________________
 
 ___ PROCEDURE newfind __________________________________________________________
 case searchcust≠""
-liveclairvoyance searchcust, findcust, ¶, "CustomerList","45 mailing list", str(«C#»), "beginswith", str(«C#»), 10, 0, ""
+liveclairvoyance searchcust, findcust, ¶, "CustomerList",thisFYear+" mailing list", str(«C#»), "beginswith", str(«C#»), 10, 0, ""
 case searchname≠""
-liveclairvoyance searchname, findname, ¶, "NameList","45 mailing list", Con, "match", str(«C#»)+": "+Con, 10, 0, ""
+liveclairvoyance searchname, findname, ¶, "NameList",thisFYear+" mailing list", Con, "match", str(«C#»)+": "+Con, 10, 0, ""
 endcase
 ___ ENDPROCEDURE newfind _______________________________________________________
 
@@ -1576,12 +1652,12 @@ find «C#»=val(getcust)
 searchcust=""
 ___ ENDPROCEDURE newget ________________________________________________________
 
-___ PROCEDURE getname __________________________________________________________
+___ PROCEDURE vGetName __________________________________________________________
 gosheet
 find Con=extract(getname,": ",2)
 searchname=""
 call .tab1
-___ ENDPROCEDURE getname _______________________________________________________
+___ ENDPROCEDURE vGetName _______________________________________________________
 
 ___ PROCEDURE (DeDuplication) __________________________________________________
 
@@ -1649,7 +1725,8 @@ vT42, vT43, vT44, vT45, vT41, vT40, vT39, vT38, vT37, vT36, vT35, vT34, vT33, vT
 vT29, vT28, vT27, vT26, vT25, vT24, vT23, vT22, vT21, vT20, vT19,
 vTaxName, vTIN, vConsent, vNotified, vEquity
 
-
+///we should be able to shorten this with the SET command
+//____________________________________NOtes____________
 vtargetcust=«C#»
 
 if «Mem?»=""
@@ -1673,7 +1750,7 @@ window "customer_history:customeractivity"
 if «C#»≠vsourcecust
     find «C#»=vsourcecust
         if info("found")=0
-            window "45 mailing list"
+            window thisFYear+" mailing list"
             
              "Nothing found!"
             Stop
@@ -1682,7 +1759,7 @@ if «C#»≠vsourcecust
         endif
 endif
 
-farcall "45 mailing list", .SetVariables
+farcall thisFYear+" mailing list", .SetVariables
 //**** This if clause may be an unnecessary diplication of the step above
 if «C#»≠vtargetcust
     find «C#»=vtargetcust
@@ -1738,7 +1815,7 @@ if vEquity≠0
     endif
 endif
 
-farcall "45 mailing list", .FillTargetFields
+farcall thisFYear+" mailing list", .FillTargetFields
 
 «45Total»=S45+Bf45+M45+T45
 «44Total»=S44+Bf44+M44+T44
@@ -1768,7 +1845,7 @@ farcall "45 mailing list", .FillTargetFields
 «20Total»=S20+Bf20+M20+OGS20+T20
 «19Total»=S19+Bf19+M19+T19
 ;Message "Totals run"
-window "45 mailing list"
+window thisFYear+" mailing list"
 
 find «C#» = vsourcecust
 field «C#»
@@ -2189,7 +2266,7 @@ YesNo "delete this record in customer history?" +" "+ str(«C#») + " "+ Con
 if clipboard()="Yes"
 deleterecord
 endif
-window "45 mailing list"
+window thisFYear+" mailing list"
 
 ___ ENDPROCEDURE .HistoryDelete ________________________________________________
 
