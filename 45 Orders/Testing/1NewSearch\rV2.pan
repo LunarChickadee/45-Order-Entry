@@ -15,7 +15,8 @@ ono=«OrderNo»
 vzip=Zip
 vd=«C#»  // #Davids old code, leaving in case there are dependencies
 rayj=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1] //gets first name and last name
-place=MAd["0-9",-1][1,-1]
+;place=MAd["0-9",-1][1,-1]
+place=MAd
 vExtracted=""
 vExtracted=extract(rayj," ",1)
 vFirstInitial=vExtracted[1,1]
@@ -44,75 +45,41 @@ Mailing Address
 My Own Search
 Add New Customer Instead"
 superchoicedialog ChoiceList, Choice, {caption="How Would You Like to Search?" captionstyle=bold}
+if info("dialogtrigger") contains "cancel"
+Stop
+endif
 ;message Choice
 
 vChoice=arraysearch(ChoiceList, Choice, 1, ¶)
 
-if vChoice=1
+case vChoice=1
     window newyear+" mailing list"
     select email=vEmail
     if info("empty")
         message "No email match found."
-        call "NewSearch/`"
-    else 
-        arrayselectedbuild chooseCustomerArray,¶,"",exportline()
-        superchoicedialog chooseCustomerArray,chooseCustChoice, {caption="Please choose the appropriate customer or click other search to try sometning else."
-        buttons=OK;OtherSearch:100;Cancel}
-            if info("dialogtrigger") contains "cancel"
-                stop
-                    endif
-            if info("dialogtrigger") contains "other"
-                farcall (thisFYear+"orders"),"NewSearch/`"
-                    endif
-            if info("dialogtrigger") contains "ok"
-                find exportline() contains chooseCustChoice
-                    endif
-        /*
-        bigmessage "Select customer in mailing list and press cmd+option+r to enter"+¶+"If the customer doesnt appear here, press CMD-R to search by something else." 
-        */
+        farcall (thisFYear+"orders"),"NewSearch/`"
     endif
-endif
-
-
-
-if vChoice="2"
+case vChoice=2
     window newyear+" mailing list"
     select phone=vPhoneNum
-    if info("selected")=info("records")
-        message "No phone match found."
-        call "NewSearch/`"
-    else 
-        message "Select customer in mailing list and press cmd+option+r."+¶+"If the customer doesnt appear here, press CMD-R to search by something else." 
-    endif
-endif
-
-if vChoice="3"
+        if info("empty")
+            message "No phone match found."
+            farcall (thisFYear+"orders"),"NewSearch/`"
+        endif
+case vChoice=3
     window newyear+" mailing list"
     select MAd=place and Zip=vzip
-        if info("selected")=info("records")
-        message "No address match found."
-        call "NewSearch/`"
-    else 
-        select MAd contains place And Zip=vzip
-        selectedAddressArray=""
-        arrayselectedbuild selectedAddressArray, ¶,"",?(«C#» >0 ,str(«C#»), "NoNumberYet")+¬+«Con»+¬+«MAd»+¬+«City»+¬+«St»
-        superchoicedialog selectedAddressArray, chosenAddress, 
-            {title="Choose the Correct Customer/Address" caption="Click -Other Search- to Search by something else" buttons="ok;other search;cancel"}
-
-        if info("dialogtrigger") contains "ok"
-            call "enter/e"
+        if info("empty")
+            message "No address match found."
+            farcall (thisFYear+"orders"),"NewSearch/`"
         endif
-        if info("dialogtrigger") contains "search"
-            call NewSearch/`
+case vChoice=4
+    window newyear+" mailing list"
+    findselect
+    if info("dialogtrigger") contains "cancel"
+    farcall (thisFYear+"orders"),"NewSearch/`"
         endif
-    endif
-endif
-
-if vChoice="4"
-    findselectdialog
-endif
-
-if vChoice="5"
+case vChoice=5
     window newyear+" mailing list"
         insertrecord
         Con=grabdata(newyear+"orders",Con) 
@@ -144,8 +111,21 @@ if vChoice="5"
         if ono>600000 and ono<700000
             call "moosed/µ"
         endif
-endif
+endcase
 
 
+window thisFYear+" mailing list"
 
+arrayselectedbuild chooseCustomerArray,¶,"",exportline()
+        superchoicedialog chooseCustomerArray,chooseCustChoice, {caption="Please choose the appropriate customer or click other search to try sometning else."
+        buttons=OK;OtherSearch:100;Cancel height="600" width="800"}
+            if info("dialogtrigger") contains "cancel"
+                stop
+                    endif
+            if info("dialogtrigger") contains "other"
+                farcall (thisFYear+"orders"),"NewSearch/`"
+                    endif
+            if info("dialogtrigger") contains "ok"
+                find exportline() contains chooseCustChoice
+                    endif
 

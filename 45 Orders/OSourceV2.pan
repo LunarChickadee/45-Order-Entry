@@ -2560,6 +2560,7 @@ WinNumber=arraysearch(info("windows"), "mailing list", 1,¶)
 if WinNumber=0
     openfile newyear+" mailing list"
 endif
+
 window newyear+" mailing list"
 if vd>0
     find «C#»=vd
