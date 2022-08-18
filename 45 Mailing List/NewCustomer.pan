@@ -12,7 +12,7 @@ Code = "I"+thisYear+"t"
 
 //gets a new number
 openfile "Customer#"
-call "filler/¬"
+call "newnumber"
 
 //_______________________//
 window "45 mailing list"
@@ -29,7 +29,7 @@ If inqcode=""
     field «C#»
 EndIf
 
-call NewCustomer
+call "filler/¬"
 
 If inqcode=""
 field inqcode

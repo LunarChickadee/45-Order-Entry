@@ -1,5 +1,5 @@
 global vChoice,vFirstInitial,vLastName,vExtracted,vExtracted2,vFirstIntLastName,vCustNum,
-vEmail,vPhoneNum, chooseCustomerArray,chooseCustChoice
+vEmail,vPhoneNum, chooseCustomerArray,chooseCustChoice,rayj
 
 waswindow=info("windowname")
 
@@ -7,7 +7,7 @@ window thisFYear+"orders"
 
 if info("formname")="treesinput" and (OrderNo<410000 or OrderNo>420000)
     call ".pool"
-endif
+    endif
 
 /*This fills the variables for the search*/
 EntryDate=today()
@@ -15,6 +15,8 @@ ono=«OrderNo»
 vzip=Zip
 vd=«C#»  // #Davids old code, leaving in case there are dependencies
 rayj=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1] //gets first name and last name
+//kept rayj for dependencies, but made a new array named clearer for my use
+conArray=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1]
 ;place=MAd["0-9",-1][1,-1]
 place=MAd
 vExtracted=""
@@ -27,6 +29,25 @@ vEmail=Email
 vPhoneNum=Telephone
 vChoice=0
 
+WinNumber=arraysearch(info("windows"), "mailing list", 1,¶)
+if WinNumber=0
+    openfile newyear+" mailing list"
+    endif
+
+window newyear+" mailing list"
+selectall
+if vd>0
+    find «C#»=vd
+    if info("found")=-1
+        YesNo "Enter this one?"
+        if clipboard() contains "Yes"
+        call "enter/e"
+        stop
+        endif
+    else
+        farcall (thisFYear+"orders"),"NewSearch/`"
+        endif
+    endif
 ;selectall
 
 /*
