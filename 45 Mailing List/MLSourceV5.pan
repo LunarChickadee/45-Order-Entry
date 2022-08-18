@@ -445,7 +445,7 @@ findher=addressArray
 supergettext findher, {caption="Enter Address.Zip" height=100 width=400 captionfont=Times captionsize=14 captioncolor="cornflowerblue"
     buttons="Find;Redo;Cancel"}
     if info("dialogtrigger") contains "Find"
-        findzip=extract(findher,".",2)
+          =extract(findher,".",2)
         findzip=strip(findzip)
             if length(findzip)=4
             findzip="0"+findzip
@@ -800,6 +800,7 @@ field «C#»
 ___ ENDPROCEDURE entering/√ ____________________________________________________
 
 ___ PROCEDURE enter/e __________________________________________________________
+
 Num=«C#»
 If Num=0
 ;Message "You must create a Customer#"
@@ -830,32 +831,33 @@ S=?(S=0,1,S)
 case waswindow contains "mt"
 S=?(S=0,1,S)
 endcase
-window waswindow
-«C#»=Num
-«C#Text»=str(Num)
-case info("formname") = "ogsinput" and OrderNo>320000 and OrderNo<400000
-    if Con≠""
-        stop
-    endif
-case info("formname") = "seedsinput" and OrderNo>710000
-    if Con≠""
-        stop
-    endif
-case info("formname") = "treesinput" and OrderNo>420000 and OrderNo<500000
-    if Con≠""
-        stop
-    endif
-case info("formname") = "mtinput" and OrderNo>620000 and OrderNo<700000
-    if Con≠""
-        stop
-    endif
-case info("formname") = "bulbsinput" and  OrderNo>520000 and OrderNo<600000
-    if Con≠""
-        stop
-    endif
-endcase
 
-call ".customerfill"
+window (thisyear+"orders")
+    «C#»=Num
+    «C#Text»=str(Num)
+    case info("formname") = "ogsinput" and OrderNo>320000 and OrderNo<400000
+        if Con≠""
+            stop
+        endif
+    case info("formname") = "seedsinput" and OrderNo>710000
+        if Con≠""
+            stop
+        endif
+    case info("formname") = "treesinput" and OrderNo>420000 and OrderNo<500000
+        if Con≠""
+            stop
+        endif
+    case info("formname") = "mtinput" and OrderNo>620000 and OrderNo<700000
+        if Con≠""
+            stop
+        endif
+    case info("formname") = "bulbsinput" and  OrderNo>520000 and OrderNo<600000
+        if Con≠""
+            stop
+        endif
+    endcase
+
+    call ".customerfill"
 ___ ENDPROCEDURE enter/e _______________________________________________________
 
 ___ PROCEDURE sameship/2 _______________________________________________________
@@ -1279,7 +1281,6 @@ added 8/22 by Lunar
 */
 
 
-
 window thisFYear+" mailing list"
 
 if S+T+Bf=0 and RedFlag=""
@@ -1300,16 +1301,15 @@ if S+T+Bf=0 and RedFlag=""
             «M?»=?(«M?» notcontains "X","X"+«M?»,«M?»)
             T=1
             «M?»=?(«M?» notcontains "W","W"+«M?»,«M?»)
-            ///add an if ono or fromBranch=bulbs change this
-            Bf=0
+            Bf=?(fromBranch contains "OGS",1,0)
             «M?»=?(«M?» contains "Z",replace(«M?»,"Z",""),«M?»)
         DefaultCase
             S=1
             «M?»=?(«M?» notcontains "X","X"+«M?»,«M?»)
-            T=0
+            T=?(fromBranch contains "Trees",1,0)
             //same for trees and bulbs here
             «M?»=?(«M?» contains "W",replace(«M?»,"W",""),«M?»)
-            Bf=0
+            Bf=?(fromBranch contains "OGS",1,0)
             «M?»=?(«M?» contains "Z",replace(«M?»,"Z",""),«M?»)
         endcase     
     endif 
@@ -1375,51 +1375,6 @@ else
     endcase
 endif 
 
-
-
-
-
-
-
-/*
-***************Previous Code************
-
-
-Case Zip < 19000  And Zip>1000
-S=1
-T=1
-Bf=1
-Case (Zip > 43000 And Zip < 46000) or (Zip > 48000 And Zip < 50000) or (Zip > 53000 And Zip < 57000) or Zip>97000
-S=1
-T=1
-Bf=0
-DefaultCase
-S=1
-T=0
-Bf=0
-endcase
-If inqcode=""
-field inqcode
-editcell
-endif
-if inqcode[3,3]= "t" and T=0
-T=1
-endif
-if inqcode contains "b" and Bf=0
-Bf=0
-endif
-;if T=1
-;«M?»="W"
-;endif
-if Bf=1
-«M?»=«M?»+"Z"
-endif
-;if S=1
-;«M?»=«M?»+"X"
-;endif
-field «C#»
-
-*/
 ___ ENDPROCEDURE filler/¬ ______________________________________________________
 
 ___ PROCEDURE moved/` __________________________________________________________
@@ -1652,12 +1607,12 @@ find «C#»=val(getcust)
 searchcust=""
 ___ ENDPROCEDURE newget ________________________________________________________
 
-___ PROCEDURE vGetName __________________________________________________________
+___ PROCEDURE getname __________________________________________________________
 gosheet
 find Con=extract(getname,": ",2)
 searchname=""
 call .tab1
-___ ENDPROCEDURE vGetName _______________________________________________________
+___ ENDPROCEDURE getname _______________________________________________________
 
 ___ PROCEDURE (DeDuplication) __________________________________________________
 
@@ -2733,3 +2688,419 @@ ___ PROCEDURE UpdateEmpty ______________________________________________________
 select Updated=""
 formulafill datepattern(regulardate(Modified),"mm/dd/yy")+"@"+timepattern(regulartime(Modified),"hh:mm am/pm")
 ___ ENDPROCEDURE UpdateEmpty ___________________________________________________
+
+___ PROCEDURE .UpdateCats ______________________________________________________
+            loop
+                rundialog
+                “Form="CatalogRequest"
+                    Movable=yes
+                    okbutton=Update
+                    Menus=normal
+                    WindowTitle={CatalogRequest}
+                    Height=264 Width=190
+                    AutoEdit="Text Editor"
+                    Variable:"val(«dS»)=val(«S»)"
+                    Variable:"val(«dBf»)=val(«Bf»)"
+                    Variable:"val(«dT»)=val(«T»)"”
+                stoploopif info("trigger")="Dialog.Close"
+            while forever 
+___ ENDPROCEDURE .UpdateCats ___________________________________________________
+
+___ PROCEDURE .test2 ___________________________________________________________
+if vSerialNum notcontains "2074269900" 
+message "Sorry, you can not use CMD+Opt+a (DeDuplication) without approval."
+stop
+endif
+
+
+global vtargetcust
+global vS45, vS44, vS43, vS42, vS41, vS40, vS39, vS38, vS37, vS36, vS35, vS34, vS33, vS32, vS31, vS30, vS29, 
+vS28, vS27, vS26, vS25, vS24, vS23, vS22, vS21, vS20, vS19, 
+vBf45, vBf44, vBf43, vBf42, vBf41, vBf40, vBf39, vBf38, vBf37, vBf36, vBf35, vBf34, vBf33, vBf32, vBf31, vBf30, vBf29, vBf28, vBf27, vBf26, vBf25, 
+vBf24, vBf23, vBf22, vBf21, vBf20, vBf19, 
+vM45, vM44, vM43, vM42, vM41, vM40, vM39, vM38, vM37, vM36, vM35, vM34, vM33, vM32, vM31, vM30, 
+vM29, vM28, vM27, vM26, vM25, vM24, vM23, vM22, vM21, vM20, vM19,
+vOGS45, vOGS44, vOGS43, vOGS42, vOGS41, vOGS40, vOGS39, vOGS38, vOGS37, vOGS36, vOGS35, vOGS34, vOGS33, 
+vOGS32, vOGS31, vOGS30, vOGS29, vOGS28, vOGS27, vOGS26, vOGS25, vOGS24, vOGS23, 
+vOGS22, vOGS21, vOGS20, 
+vT42, vT43, vT44, vT45, vT41, vT40, vT39, vT38, vT37, vT36, vT35, vT34, vT33, vT32, vT31, vT30, 
+vT29, vT28, vT27, vT26, vT25, vT24, vT23, vT22, vT21, vT20, vT19,
+vTaxName, vTIN, vConsent, vNotified, vEquity
+
+///we should be able to shorten this with the SET command
+//____________________________________NOtes____________
+vtargetcust=«C#»
+
+if «Mem?»=""
+    «Mem?»=vMem
+    ;stop
+endif
+
+if «TaxEx»=""
+    «TaxEx»=vTaxEx
+    ;stop
+endif
+
+if «resale»=""
+    «resale»=vResale
+    ;stop
+endif
+
+
+
+window "customer_history:customeractivity"
+if «C#»≠vsourcecust
+    find «C#»=vsourcecust
+        if info("found")=0
+            window thisFYear+" mailing list"
+            
+             "Nothing found!"
+            Stop
+        ;else
+            ;Message "found source record"
+        endif
+endif
+
+farcall (thisFYear+" mailing list"), .SetVariables
+//**** This if clause may be an unnecessary diplication of the step above**//
+if «C#»≠vtargetcust
+    find «C#»=vtargetcust
+        if info("found")=0
+            message "target not found! Process stopped, nothing merged."
+            Stop
+        else
+            ;Message "found target record" 
+        endif
+endif
+//**************************//
+if CChistory=""
+    CChistory=str(vsourcecust)
+        else
+            CChistory=CChistory+", "+str(vsourcecust)
+endif
+
+if vTaxName≠""
+    if taxname=""
+    taxname=vTaxName
+        else 
+            taxname=vTaxName+", "+taxname
+    endif
+endif
+
+if vTIN≠""
+   if TIN=""
+    TIN=vTIN
+        else 
+            TIN=vTIN+", "+TIN
+    endif
+endif
+
+if vConsent≠""
+   if Consent=""
+    Consent=vConsent
+        else 
+            Consent=vConsent+", "+Consent
+    endif
+endif
+
+if vNotified≠""
+   if Notified=""
+    Notified=vNotified
+        else 
+            Notified=vNotified+", "+Notified
+    endif
+endif
+
+if vEquity≠0
+   if Equity=0
+    Equity=vEquity
+    endif
+endif
+
+farcall (thisFYear+" mailing list"), .FillTargetFields
+
+«45Total»=S45+Bf45+M45+T45
+«44Total»=S44+Bf44+M44+T44
+«43Total»=S43+Bf43+M43+T43
+«42Total»=S42+Bf42+M42+T42
+«41Total»=S41+Bf41+M41+T41
+«40Total»=S40+Bf40+M40+OGS40+T40
+«39Total»=S39+Bf39+M39+OGS39+T39
+«38Total»=S38+Bf38+M38+OGS38+T38
+«37Total»=S37+Bf37+M37+OGS37+T37
+«36Total»=S36+Bf36+M36+OGS36+T36
+«35Total»=S35+Bf35+M35+OGS35+T35
+«34Total»=S34+Bf34+M34+OGS34+T34
+«33Total»=S33+Bf33+M33+OGS33+T33
+«32Total»=S32+Bf32+M32+OGS32+T32
+«31Total»=S31+Bf31+M31+OGS31+T31
+«30Total»=S30+Bf30+M30+OGS30+T30
+«29Total»=S29+Bf29+M29+OGS29+T29
+«28Total»=S28+Bf28+M28+OGS28+T28
+«27Total»=S27+Bf27+M27+OGS27+T27
+«26Total»=S26+Bf26+M26+OGS26+T26
+«25Total»=S25+Bf25+M25+OGS25+T25
+«24Total»=S24+Bf24+M24+OGS24+T24
+«23Total»=S23+Bf23+M23+OGS23+T23
+«22Total»=S22+Bf22+M22+OGS22+T22
+«21Total»=S21+Bf21+M21+OGS21+T21
+«20Total»=S20+Bf20+M20+OGS20+T20
+«19Total»=S19+Bf19+M19+T19
+;Message "Totals run"
+window thisFYear+" mailing list"
+
+find «C#» = vsourcecust
+field «C#»
+    copycell
+YESNO "do you want to delete the customer number " + str(vsourcecust)+" "+Con+" from the mailinglist?"
+    if clipboard()="Yes"
+    field «C#»
+    copycell
+        deleterecord
+        call .HistoryDelete
+    endif
+;vsourcecust i
+___ ENDPROCEDURE .test2 ________________________________________________________
+
+___ PROCEDURE .appendCustomer __________________________________________________
+global appendChoice
+
+appendChoice="default"
+appendChoice=str(parameter(1))
+if error
+appendChoice=appendChoice
+endif
+
+////____debug________
+;displaydata appendChoice
+//__________________
+
+case appendChoice contains "member"
+window "members"
+lastrecord
+insertbelow
+«C#»=grabdata("45 mailing list", «C#»)
+Con=grabdata("45 mailing list", Con)
+Group=grabdata("45 mailing list", Group)
+MAd=grabdata("45 mailing list", MAd)
+City=grabdata("45 mailing list", City)
+St=grabdata("45 mailing list", St)
+Zip=grabdata("45 mailing list", Zip)
+SAd=grabdata("45 mailing list", SAd)
+Cit=grabdata("45 mailing list", Cit)
+Sta=grabdata("45 mailing list", Sta)
+Z=grabdata("45 mailing list", Z)
+phone=grabdata("45 mailing list", phone)
+email=grabdata("45 mailing list", email)
+inqcode=grabdata("45 mailing list", inqcode)
+«Mem?»=grabdata("45 mailing list", «Mem?»)
+windowtoback "members"
+window thisFYear+" mailing list"
+
+endcase
+___ ENDPROCEDURE .appendCustomer _______________________________________________
+
+___ PROCEDURE .hasInfo _________________________________________________________
+global cNumVal,hasAnAddress,hasACon
+
+cNumVal=0
+hasACon=""
+hasAnAddress=""
+
+field «C#»
+    copycell
+    cNumVal=val(clipboard())
+
+hasAnAddress=?(MAd≠"",MAd+" "+str(Zip),"No Mailing Address")
+
+ç
+___ ENDPROCEDURE .hasInfo ______________________________________________________
+
+___ PROCEDURE .TestNewZip ______________________________________________________
+///__________________.custnumber
+
+//this runs when C# is changed
+//users are currently using two enters to get this to run during order entry
+waswindow=info("windowname")
+Global Num
+Num=«C#»
+ono=OrderNo
+addressArray=""
+rayj=""
+
+
+if MAd≠""
+    addressArray=MAd+"."+pattern(Zip,"#####")
+endif
+
+if Con≠""
+    rayj=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1]
+endif
+
+if «C#»=0
+    window newyear+" mailing list"
+    call ".newzip"
+    stop
+endIf 
+
+window newyear+" mailing list"
+find «C#»=Num
+
+if info("found")=0
+    call "getzip/Ω"
+else
+    window waswindow
+    call ".customerfill"   
+endif
+
+
+////__________________.NewZIp
+fileglobal listzip, thiszip, findher, findzip, findcity, newcity, findname,findname1, findname2, thisname, firstname, lastname
+serverlookup "off" 
+;waswindow=info("windowname")
+listzip=""
+thiszip=""
+newcity=""
+again:
+findher=addressArray
+
+
+supergettext findher, {caption="Enter Address.Zip" height=100 width=400 captionfont=Times captionsize=14 captioncolor="cornflowerblue"
+    buttons="Find;Redo;Cancel"}
+    if info("dialogtrigger") contains "Find"
+        findzip=extract(findher,".",2)
+        findzip=strip(findzip)
+            if length(findzip)=4
+            findzip="0"+findzip
+            endif
+        findcity=extract(findher,".",1)
+        liveclairvoyance findzip,listzip,¶,"",thisFYear+" mailing list",pattern(Zip,"#####"),"=",str(«C#»)+¬+rep(" ",7-length(str(«C#»)))+Con+rep(" ",max(20-length(Con),1))+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####"),0,0,""
+        arraysubset listzip, listzip, ¶, import() contains findcity
+            if listzip=""
+            goto lastzip
+            endif
+    
+        if arraysize(listzip,¶)=1
+        find MAd contains findcity and pattern(Zip,"#####") contains findzip
+        AlertYesNo "Enter this one?"
+            if info("dialogtrigger") contains "Yes"
+           goto lastline
+            ;stop
+            else
+            AlertOkCancel "Try by zipcode?"
+                if info("dialogtrigger") contains "OK"
+                call "getzip/Ω"
+                endif
+             endif
+           endif
+    endif
+    
+    if info("dialogtrigger") contains "Redo"
+    findher=""
+    goto again
+    endif
+    
+    if info("dialogtrigger") contains "Cancel"
+    window waswindow
+    stop
+    endif
+
+
+superchoicedialog listzip, thiszip, {height=400 width=800 font=Courier caption="Click on one and then hit OK or New for new entry" 
+        captionfont=Times captionsize=12 captioncolor=red size=14 buttons="OK:100;Try Name:150;Cancel:100"}
+if info("dialogtrigger") contains "OK"
+    find «C#» = val(strip(extract(thiszip, ¬,1))) and MAd=extract(thiszip, ¬,3) and City contains extract(thiszip, ¬,4)
+    ;;find MAd=extract(thiszip, ¬,2) and City contains extract(thiszip, ¬,3)
+    showpage
+
+    call "enter/e"
+endif
+
+if info("dialogtrigger") contains "Try Name"
+    goto tryname
+    gettext "Which town?", newcity
+    if newcity≠""
+        find Z=val(findzip) and City contains newcity
+        insertbelow
+    else
+        find Zip=val(findzip)
+        insertbelow
+    endif
+endif
+showpage
+serverlookup "on"
+
+tryname:
+    firstname=""
+    lastname=""
+    findname=""
+    findname1=""
+    findname2=""
+    findname=rayj
+    supergettext findname, {caption="Enter First and Last Name" height=100 width=400 captionfont=Times captionsize=14 captioncolor="limegreen"
+    buttons="Find;Redo;Cancel"}
+    firstname=extract(findname," ",1)
+     lastname=extract(findname," ",2)
+    if info("dialogtrigger") contains "Find"
+        liveclairvoyance lastname,findname1,¶,"",thisFYear+" mailing list",Con,"contains",Con+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####")+¬+phone,0,0,""
+        message findname1
+    endif
+    
+    if info("dialogtrigger") contains "Redo"
+        goto tryname
+    endif
+    
+    if info("dialogtrigger") contains "Cancel"
+        stop
+    endif
+    
+    arraysubset findname1,findname1,¶,import() contains firstname
+    if arraysize(findname1,¶)=1
+        find Con contains firstname and Con contains lastname
+        AlertYesNo "Enter this one?"
+        if info("dialogtrigger") contains "Yes"
+            call "enter/e"
+            stop
+        else
+            lastzip:
+            getscrap "What zip code?"
+            find Zip=val(clipboard())
+            insertbelow
+            stop
+        endif
+    endif
+    superchoicedialog findname1,thisname, {height=400 width=500 font=Helvetica caption="Click on one and then hit OK or New for new entry" 
+        captionfont=Times captionsize=12 captioncolor=green size=14 buttons="OK:100;New:100;Cancel:100"}
+     if info("dialogtrigger") contains "OK"
+        find Con contains extract(thisname, ¬,1) and City contains extract(thisname, ¬,3)
+        call "enter/e"
+     endif
+     
+     if info("dialogtrigger") contains "New"
+        gettext "Which town?", newcity
+        if newcity≠""
+            window thisFYear+" mailing list"
+            find Z=val(findzip) and City contains newcity
+            insertbelow
+        else
+            find Zip=val(findzip)
+            insertbelow
+        endif
+    endif
+    
+    showpage
+    serverlookup "on"
+    stop
+    lastline:
+    serverlookup "on"
+    call "enter/e"
+
+
+___ ENDPROCEDURE .TestNewZip ___________________________________________________
+
+___ PROCEDURE vGetName _________________________________________________________
+gosheet
+find Con=extract(getname,": ",2)
+searchname=""
+call .tab1
+___ ENDPROCEDURE vGetName ______________________________________________________

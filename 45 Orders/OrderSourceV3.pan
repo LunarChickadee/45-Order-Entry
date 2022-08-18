@@ -371,7 +371,7 @@ ___ PROCEDURE .coupon __________________________________________________________
 ;call .retotal
 ___ ENDPROCEDURE .coupon _______________________________________________________
 
-___ PROCEDURE ber ______________________________________________________
+___ PROCEDURE .custnumber ______________________________________________________
 //this runs when C# is changed in Orders
 //users are currently using two enters to get this to run during order entry
 waswindow=info("windowname")
@@ -2556,11 +2556,10 @@ place=MAd["0-9",-1][1,2]
 field «1stPayment»
 ;editcell
 
-WinNumber=arraysearch(info("windows"), "mailing list", 1,¶)
+WinNumber=arraysearch(info("windows"), thisFYear+" mailing list", 1,¶)
 if WinNumber=0
     openfile newyear+" mailing list"
 endif
-
 window newyear+" mailing list"
 if vd>0
     find «C#»=vd
@@ -3476,3 +3475,453 @@ bigmessage "Your clipboard now has the name(s) of "+str(vAnswer1)+"(s)"+¶+
 Clipboard()=vClipHold
 
 ___ ENDPROCEDURE GetDBInfo _____________________________________________________
+
+___ PROCEDURE Test/` ___________________________________________________________
+/*
+
+supergettext vChoice,“caption="Please Choose How You'd like to Search:
+1=Email 2=Phone Number 3=Mailing Address 4=Add New Customer 
+Use the Command + Tilde '~' key to run this again!" captionheight=3”
+*/
+
+global ChoiceList, Choice, Options
+Choice=""
+
+ChoiceList="Email
+Phone Number
+Mailing Address
+My Own Search
+Add New Customer Instead"
+superchoicedialog ChoiceList, Choice, {caption="How Would You Like to Search?" captionstyle=bold}
+message Choice
+___ ENDPROCEDURE Test/` ________________________________________________________
+
+___ PROCEDURE .CheckCode1 ______________________________________________________
+
+///*********This is the FileChecker macro in GetMacros
+local fileNeeded,folderArray,smallFolderArray,sizeCheck, procList, mostRecentProc
+
+//replace this with whatever file you're error checking
+//----------------------//
+fileNeeded="members"    //
+//----------------------//
+
+
+case info("files") notcontains fileNeeded and listfiles(folder(""),"????KASX") contains fileNeeded
+openfile fileNeeded
+
+case listfiles(folder(""),"????KASX") notcontains fileNeeded
+    mostRecentProc=array(info("procedurestack"),1,¬)
+    procList=info("procedurestack")
+    folderArray=folderpath(folder(""))
+    sizeCheck=arraysize(folderArray,":")
+    smallFolderArray=arrayrange(folderArray,4,sizeCheck,":")
+    message mostRecentProc
+
+//See an example below this codebase of what this looks like 
+displaydata "Hi! This is an error checker by Lunar!"
++¶+¶+¶+
+"ERROR:"
++¶+
+"You are missing the '"+fileNeeded+"' Panorama file in this folder 
+and can't continue the '"+mostRecentProc+"'"+¶+" procedure without it. Please move a copy of
+'"+fileNeeded+"' to the appropriate folder and try the procedure again"
++¶+¶+¶+
+"Pressing 'Ok' will open the Finder to your current folder"
++¶+¶+
+"Press 'Stop' will stop this procedure"
++¶+¶+
+"You can hit the 'copy' button, and send this to tech-support@fedcoseeds.com if you need help"
++¶+¶+¶+¶+¶+¶+
+"THE FOLLOWING LINES ARE TO HELP WITH ERROR CHECKING AND CAN BE DISREGARDED"
++¶+¶+¶+
+"folder you're currently running from is: "
++¶+
+smallFolderArray
++¶+¶+¶+
+"current Pan files in that folder are: "
++¶+
+listfiles(folder(""),"????KASX")
++¶+¶+¶+
+"currently open files are: "
++¶+
+info("files")
++¶+¶+¶+
+"last procedures run were"
++¶+
+info("procedurestack")
+, {title="Missing File!!!!" captionwidth=900 size=17 height=900 width=800}
+revealinfinder folder(""),""
+stop
+
+defaultcase
+window fileNeeded
+
+endcase
+
+/*
+Example:
+
+You are missing the 'members' Panorama file in this folder 
+and can't continue this procedure without it. Please move a copy of
+'members' to the appropriate folder and try the procedure again
+
+
+folder you're currently running from is: 
+Desktop:Panorama:FY45 Panorama Projects:GetMacros:
+
+
+current Pan files in that folder are: 
+GetMacros
+GetMacrosDL
+GetMacros44
+
+
+Pressing 'Ok' will open the Finder to your current folder
+
+Press 'Stop' will stop this procedure
+*/
+
+debug
+
+lastrecord
+insertbelow
+«C#»=grabdata("45 mailing list", «C#»)
+Con=grabdata("45 mailing list", Con)
+Group=grabdata("45 mailing list", Group)
+MAd=grabdata("45 mailing list", MAd)
+City=grabdata("45 mailing list", City)
+St=grabdata("45 mailing list", St)
+Zip=grabdata("45 mailing list", Zip)
+SAd=grabdata("45 mailing list", SAd)
+Cit=grabdata("45 mailing list", Cit)
+Sta=grabdata("45 mailing list", Sta)
+Z=grabdata("45 mailing list", Z)
+phone=grabdata("45 mailing list", phone)
+email=grabdata("45 mailing list", email)
+inqcode=grabdata("45 mailing list", inqcode)
+«Mem?»=grabdata("45 mailing list", «Mem?»)
+windowtoback "members"
+window "45 mailing list"
+___ ENDPROCEDURE .CheckCode1 ___________________________________________________
+
+___ PROCEDURE NewSearch/` ______________________________________________________
+global vChoice,vFirstInitial,vLastName,vExtracted,vExtracted2,vFirstIntLastName,vCustNum,
+vEmail,vPhoneNum, chooseCustomerArray,chooseCustChoice
+
+waswindow=info("windowname")
+
+window thisFYear+"orders"
+
+if info("formname")="treesinput" and (OrderNo<410000 or OrderNo>420000)
+    call ".pool"
+endif
+
+/*This fills the variables for the search*/
+EntryDate=today()
+ono=«OrderNo»
+vzip=Zip
+vd=«C#»  // #Davids old code, leaving in case there are dependencies
+rayj=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1] //gets first name and last name
+;place=MAd["0-9",-1][1,-1]
+place=MAd
+vExtracted=""
+vExtracted=extract(rayj," ",1)
+vFirstInitial=vExtracted[1,1]
+vExtracted2=""
+vLastName=extract(rayj," ",2)
+vCustNum=«C#»
+vEmail=Email
+vPhoneNum=Telephone
+vChoice=0
+
+;selectall
+
+/*
+
+supergettext vChoice,“caption="Please Choose How You'd like to Search:
+1=Email 2=Phone Number 3=Mailing Address 4=Add New Customer 
+Use the Command + Tilde '~' key to run this again!" captionheight=3”
+*/
+
+global ChoiceList, Choice, Options
+Choice=""
+
+ChoiceList="By Email
+Phone Number
+Mailing Address
+My Own Search
+Add New Customer Instead"
+superchoicedialog ChoiceList, Choice, {caption="How Would You Like to Search?" captionstyle=bold}
+if info("dialogtrigger") contains "cancel"
+Stop
+endif
+;message Choice
+
+vChoice=arraysearch(ChoiceList, Choice, 1, ¶)
+
+case vChoice=1
+    window newyear+" mailing list"
+    select email=vEmail
+    if info("empty")
+        message "No email match found."
+        farcall (thisFYear+"orders"),"NewSearch/`"
+    endif
+case vChoice=2
+    window newyear+" mailing list"
+    select phone=vPhoneNum
+        if info("empty")
+            message "No phone match found."
+            farcall (thisFYear+"orders"),"NewSearch/`"
+        endif
+case vChoice=3
+    window newyear+" mailing list"
+    select MAd=place and Zip=vzip
+        if info("empty")
+            message "No address match found."
+            farcall (thisFYear+"orders"),"NewSearch/`"
+        endif
+case vChoice=4
+    window newyear+" mailing list"
+    findselect
+    if info("dialogtrigger") contains "cancel"
+    farcall (thisFYear+"orders"),"NewSearch/`"
+        endif
+case vChoice=5
+    window newyear+" mailing list"
+        insertrecord
+        Con=grabdata(newyear+"orders",Con) 
+        Group=grabdata(newyear+"orders",Group) 
+        MAd=grabdata(newyear+"orders",MAd) 
+        City=grabdata(newyear+"orders",City) 
+        St=grabdata(newyear+"orders",St)
+        Zip=grabdata(newyear+"orders",Zip) 
+        adc=lookup("newadc","Zip3",pattern(Zip,"#####")[1,3],"adc",0,0)
+        SAd=grabdata(newyear+"orders",SAd) 
+        Cit=grabdata(newyear+"orders",Cit) 
+        Sta=grabdata(newyear+"orders",Sta) 
+        Z=grabdata(newyear+"orders",Z) 
+        phone=grabdata(newyear+"orders",Telephone) 
+        email=grabdata(newyear+"orders", Email)
+        adc=lookup("fcmadc","Zip3",pattern(Zip,"#####")[1,3],"adc",0,0)
+        if ono>300000 and ono<400000
+            call "ogsity/ø"
+        endif
+        if ono>500000 and ono<600000
+            call "bulbous/∫"
+        endif
+        if ono>400000 and ono<500000
+            call "treed/†"
+        endif
+        if ono>700000 and ono < 1000000
+            call "seedy/ß"
+        endif
+        if ono>600000 and ono<700000
+            call "moosed/µ"
+        endif
+endcase
+
+
+window thisFYear+" mailing list"
+
+arrayselectedbuild chooseCustomerArray,¶,"",exportline()
+        superchoicedialog chooseCustomerArray,chooseCustChoice, {caption="Please choose the appropriate customer or click other search to try sometning else."
+        buttons=OK;OtherSearch:100;Cancel height="600" width="800"}
+            if info("dialogtrigger") contains "cancel"
+                stop
+                    endif
+            if info("dialogtrigger") contains "other"
+                farcall (thisFYear+"orders"),"NewSearch/`"
+                    endif
+            if info("dialogtrigger") contains "ok"
+                find exportline() contains chooseCustChoice
+                    endif
+
+
+___ ENDPROCEDURE NewSearch/` ___________________________________________________
+
+___ PROCEDURE .scrap ___________________________________________________________
+displaydata info("procedurestack")
+___ ENDPROCEDURE .scrap ________________________________________________________
+
+___ PROCEDURE .test.newzipV2 ___________________________________________________
+///__________________.custnumber
+global addressArray
+//this runs when C# is changed
+//users are currently using two enters to get this to run during order entry
+waswindow=info("windowname")
+Global Num
+Num=«C#»
+ono=OrderNo
+addressArray=""
+rayj=""
+
+
+if MAd≠""
+    addressArray=MAd+"."+pattern(Zip,"#####")
+endif
+
+if Con≠""
+    rayj=Con[1," "][1,-2]+" "+Con["- ",-1][2,-1]
+endif
+
+if «C#»=0
+    window newyear+" mailing list"
+    call ".newzip"
+    stop
+endIf 
+
+window newyear+" mailing list"
+find «C#»=Num
+
+if info("found")=0
+    call "getzip/Ω"
+else
+    window waswindow
+    call ".customerfill"   
+endif
+
+
+////__________________.NewZIp
+fileglobal listzip, thiszip, findher, findzip, findcity, newcity, findname,findname1, findname2, thisname, firstname, lastname
+serverlookup "off" 
+;waswindow=info("windowname")
+listzip=""
+thiszip=""
+newcity=""
+again:
+findher=addressArray
+
+
+supergettext findher, {caption="Enter Address.Zip" height=100 width=400 captionfont=Times captionsize=14 captioncolor="cornflowerblue"
+    buttons="Find;Redo;Cancel"}
+    if info("dialogtrigger") contains "Find"
+        findzip=extract(findher,".",2)
+        findzip=strip(findzip)
+            if length(findzip)=4
+            findzip="0"+findzip
+            endif
+        findcity=extract(findher,".",1)
+        liveclairvoyance findzip,listzip,¶,"",thisFYear+" mailing list",pattern(Zip,"#####"),"=",str(«C#»)+¬+rep(" ",7-length(str(«C#»)))+Con+rep(" ",max(20-length(Con),1))+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####"),0,0,""
+        arraysubset listzip, listzip, ¶, import() contains findcity
+            if listzip=""
+            goto lastzip
+            endif
+    
+        if arraysize(listzip,¶)=1
+        find MAd contains findcity and pattern(Zip,"#####") contains findzip
+        AlertYesNo "Enter this one?"
+            if info("dialogtrigger") contains "Yes"
+           goto lastline
+            ;stop
+            else
+            AlertOkCancel "Try by zipcode?"
+                if info("dialogtrigger") contains "OK"
+                call "getzip/Ω"
+                endif
+             endif
+           endif
+    endif
+    
+    if info("dialogtrigger") contains "Redo"
+    findher=""
+    goto again
+    endif
+    
+    if info("dialogtrigger") contains "Cancel"
+    window waswindow
+    stop
+    endif
+
+
+superchoicedialog listzip, thiszip, {height=400 width=800 font=Courier caption="Click on one and then hit OK or New for new entry" 
+        captionfont=Times captionsize=12 captioncolor=red size=14 buttons="OK:100;Try Name:150;Cancel:100"}
+if info("dialogtrigger") contains "OK"
+    find «C#» = val(strip(extract(thiszip, ¬,1))) and MAd=extract(thiszip, ¬,3) and City contains extract(thiszip, ¬,4)
+    ;;find MAd=extract(thiszip, ¬,2) and City contains extract(thiszip, ¬,3)
+    showpage
+
+    call "enter/e"
+endif
+
+if info("dialogtrigger") contains "Try Name"
+    goto tryname
+    gettext "Which town?", newcity
+    if newcity≠""
+        find Z=val(findzip) and City contains newcity
+        insertbelow
+    else
+        find Zip=val(findzip)
+        insertbelow
+    endif
+endif
+showpage
+serverlookup "on"
+
+tryname:
+    firstname=""
+    lastname=""
+    findname=""
+    findname1=""
+    findname2=""
+    findname=rayj
+    supergettext findname, {caption="Enter First and Last Name" height=100 width=400 captionfont=Times captionsize=14 captioncolor="limegreen"
+    buttons="Find;Redo;Cancel"}
+    firstname=extract(findname," ",1)
+     lastname=extract(findname," ",2)
+    if info("dialogtrigger") contains "Find"
+        liveclairvoyance lastname,findname1,¶,"",thisFYear+" mailing list",Con,"contains",Con+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####")+¬+phone,0,0,""
+        message findname1
+    endif
+    
+    if info("dialogtrigger") contains "Redo"
+        goto tryname
+    endif
+    
+    if info("dialogtrigger") contains "Cancel"
+        stop
+    endif
+    
+    arraysubset findname1,findname1,¶,import() contains firstname
+    if arraysize(findname1,¶)=1
+        find Con contains firstname and Con contains lastname
+        AlertYesNo "Enter this one?"
+        if info("dialogtrigger") contains "Yes"
+            call "enter/e"
+            stop
+        else
+            lastzip:
+            getscrap "What zip code?"
+            find Zip=val(clipboard())
+            insertbelow
+            stop
+        endif
+    endif
+    superchoicedialog findname1,thisname, {height=400 width=500 font=Helvetica caption="Click on one and then hit OK or New for new entry" 
+        captionfont=Times captionsize=12 captioncolor=green size=14 buttons="OK:100;New:100;Cancel:100"}
+     if info("dialogtrigger") contains "OK"
+        find Con contains extract(thisname, ¬,1) and City contains extract(thisname, ¬,3)
+        call "enter/e"
+     endif
+     
+     if info("dialogtrigger") contains "New"
+        gettext "Which town?", newcity
+        if newcity≠""
+            window thisFYear+" mailing list"
+            find Z=val(findzip) and City contains newcity
+            insertbelow
+        else
+            find Zip=val(findzip)
+            insertbelow
+        endif
+    endif
+    
+    showpage
+    serverlookup "on"
+    stop
+    lastline:
+    serverlookup "on"
+    call "enter/e"
+
+
+___ ENDPROCEDURE .test.newzipV2 ________________________________________________
