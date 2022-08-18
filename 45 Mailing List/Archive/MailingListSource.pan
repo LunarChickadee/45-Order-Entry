@@ -1052,7 +1052,7 @@ if info("dialogtrigger") contains "New"
 endif
 showpage
 serverlookup "on"
-___ ENDPROCEDURE getzip/Ω ______________________________________________________
+___ ENDPROCEDURE /Ω ______________________________________________________
 
 ___ PROCEDURE insert below/i ___________________________________________________
 InsertBelow
