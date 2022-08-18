@@ -1,3 +1,12 @@
+/*
+This Function is supposed to either 
+1. find the customer already in the list
+    1a. Call Enter
+2. add a new line and fill it with this new data
+
+*/
+
+
 global vChoice,vFirstInitial,vLastName,vExtracted,vExtracted2,vFirstIntLastName,vCustNum,
 vEmail,vPhoneNum, chooseCustomerArray,chooseCustChoice,rayj
 
@@ -29,11 +38,14 @@ vEmail=Email
 vPhoneNum=Telephone
 vChoice=0
 debug
+
+///___make sure mailing list is open_____
 WinNumber=arraysearch(info("windows"), thisFYear+" mailing list", 1,¶)
 if WinNumber=0
     openfile newyear+" mailing list"
 endif
 
+///____can we find them just with the C# they have on the order?
 window newyear+" mailing list"
 selectall
 if vd>0
@@ -45,6 +57,7 @@ if vd>0
             stop
             endif
     else
+        ////____If we can't let's do a smart search_____///
         goto Choose
         endif
     endif
