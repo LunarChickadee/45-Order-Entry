@@ -1,6 +1,10 @@
 ;if info("fieldname")="C#"
 style "record black"
 ;endif
+
+//_______User Edits C#,Con, or Group____
+    //______If they have a customer number, see if they are in customer history already
+    //______If not there, create a record for them
 Numb=0
 if «C#»>0
     Numb=«C#»
