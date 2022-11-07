@@ -1,3 +1,6 @@
+Make sure that automate FY is in all the files and the calls to newyear+" filename" are changed
+
+
 Bugs:
 
 When doing entry post collating, and the Customer is found and already has an number, Pan wills try to call the field 

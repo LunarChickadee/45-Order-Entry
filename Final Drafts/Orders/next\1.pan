@@ -173,7 +173,7 @@ if OrderNo=int(OrderNo)
     or (OrderNo >= 620000 and OrderNo < 700000)
     or (OrderNo >= 710000 and OrderNo < 1000000)
             ;call "updatemail/7"
-            call "NewSearch/`"
+            call "NewSearch/ßß"
     endif
 endif
 
