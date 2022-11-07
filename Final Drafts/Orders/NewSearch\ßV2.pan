@@ -70,7 +70,7 @@ thisCustomerLine=""
 //builds a WildCard of the name (see MATCH in the Pan Ref)
     vExtracted=""
     vExtracted=extract(conArray," ",1)
-    vFirstInitial=vExtracted[1,1]
+    vFirstInitial=?(vExtracted[1,2] notcontains "", vExtracted[1,2],vExtracted[1,1])
     vExtracted2=""
     vLastName=extract(conArray," ",2)
     orderWildCard=str(vFirstInitial+"*"+vLastName)
@@ -86,23 +86,20 @@ if WinNumber=0
 endif
 
 ///____can we find them just with the C# they have on the order?
+
 window thisFYear+" mailing list"
 selectall
 if vd>0
     find «C#»=vd
-    if info("found")=-1
-        
-        thisCustomerLine=str(«C#»)+" "+Con+" "+Group+¶+MAd+" "+string_zip
+    if info("found")=-
+        thisCustomerLine=str(«C#»)+" "+Con+" "+Group+¶+MAd+" "+pattern(Zip,"#####")
         YesNo "C# Found. Enter This one?"+¶+thisCustomerLine
         if clipboard() contains "Yes"
             call "enter/e"
             stop
             endif
-    else
-        ////____If we can't let's do a smart search_____///
-        goto Choose
-        endif
     endif
+endif
 
 
 Choose:
@@ -117,6 +114,7 @@ Mailing Address
 Open CMD-F and Let me Search (Pan5 version)
 Open CMD-F and Let me Search (Pan6 version)
 Add New Customer"
+
 superchoicedialog ChoiceList, Choice, {
 caption="No Cust Number Match Found. 
 How Would You Like to Search? Cancel = Stop 
@@ -144,11 +142,14 @@ case vChoice=1
                         if info("empty")
                             message "Unable to find anyone with that name. Please, choose another option"
                                 goto Choose
-                                    endif
-                                        endif
+                        endif
+        else
+            field Con
+            sortup
+        endif
 
 case vChoice=2
-    if email=""
+    if vEmail=""
         message "Customer doesn't have an email on order. Reverting to Search."
         goto Choose
     endif
@@ -159,7 +160,7 @@ case vChoice=2
         goto Choose
     endif
 case vChoice=3
-     if phone=""
+     if vPhoneNum=""
         message "Customer doesn't have an Phone Num on order. Reverting to Search."
         goto Choose
     endif
@@ -218,7 +219,7 @@ endcase
 
 window thisFYear+" mailing list"
 
-arrayselectedbuild chooseCustomerArray,¶,"",str(«C#»)+" "+Con+" "+Group+" "+MAd+" "+string_zip
+arrayselectedbuild chooseCustomerArray,¶,"",str(«C#»)+" "+?(Con≠"",Con+", ","")+?(Group≠"",Group+", ","")+MAd+" "+City+", "+St+" "+pattern(Zip,"#####")
         superchoicedialog chooseCustomerArray,chooseCustChoice, {
         captionstyle=bold
         caption="Please choose the appropriate customer or click other search to try something else.

@@ -1,6 +1,7 @@
 local Flag
 Flag=""
 waswindow=info("windowname") //XXorders
+///this needs a call to info("formname") for the cases below
 Num=«C#»
 window thisFYear+" mailing list"
 find «C#»=Num
