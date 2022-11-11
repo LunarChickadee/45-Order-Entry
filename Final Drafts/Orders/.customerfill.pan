@@ -1,7 +1,11 @@
 local Flag
 Flag=""
+
 waswindow=info("windowname") //XXorders
 ///this needs a call to info("formname") for the cases below
+
+call .FromBranch
+
 Num=«C#»
 window thisFYear+" mailing list"
 find «C#»=Num
@@ -9,15 +13,15 @@ rayj=«Mem?»
 
 «M?»=?(«M?» contains "E" or «M?» contains "U" or «M?» contains "R", "", «M?»)
 
-case waswindow contains "bulbs"
+case fromBranch contains "bulbs"
     Bf=?(Bf=0,1,Bf)
-case waswindow contains "seeds"
+case fromBranch contains "seeds"
     S=?(S=0,1,S)
-case waswindow contains "ogs"
+case fromBranch contains "ogs"
     S=?(S=0,1,S)
-case waswindow contains "mt"
+case fromBranch contains "poe"
     S=?(S=0,1,S)
-case waswindow contains "trees"
+case fromBranch contains "trees"
     T=?(T=0,1,T)
 endcase
 
